@@ -6,7 +6,6 @@ package frc.robot;
 
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import frc.robot.DriverSystem.*;
 import frc.robot.ManipulationSystem.*;
 /**
@@ -42,7 +41,7 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
  // *************************************************//
 
   public Robot() {
-   
+   System.out.println("merhaba");
   }
 
 
