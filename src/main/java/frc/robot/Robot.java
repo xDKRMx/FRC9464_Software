@@ -41,7 +41,7 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
  // *************************************************//
 
   public Robot() {
-   System.out.println("Selam");
+   System.out.println("merhaba");
   }
 
 
