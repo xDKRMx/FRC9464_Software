@@ -23,7 +23,7 @@ public class Robot extends TimedRobot {
 // *************************************************//
  /* Header : Driver Sytem Class'leri ve Interfaceleri */
 public MotorControllerModule Motor_Controller_Class = new  MotorControllerModule();
-public InputProcessingModule Input_Processing_Class = new  InputProcessingModule();
+public InputProcessingModule Input_Processing_Class = new  InputProcessingModule(Motor_Controller_Class);
 public SensorIntegrationModule Sensor_Integration_Class = new  SensorIntegrationModule();
 public TelemetryModule Telemetry_Class = new  TelemetryModule();
 
@@ -66,6 +66,8 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void teleopPeriodic() {
+        //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
+        Input_Processing_Class.Call_Driver_Periodic(true);
   }
 
   @Override
