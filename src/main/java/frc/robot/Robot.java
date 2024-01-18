@@ -25,7 +25,7 @@ public class Robot extends TimedRobot {
 public MotorControllerModule Motor_Controller_Class = new  MotorControllerModule();
 public InputProcessingModule Input_Processing_Class = new  InputProcessingModule(Motor_Controller_Class);
 public SensorIntegrationModule Sensor_Integration_Class = new  SensorIntegrationModule();
-public TelemetryModule Telemetry_Class = new  TelemetryModule();
+public TelemetryModule Telemetry_Class = new  TelemetryModule(Motor_Controller_Class);
 
 // *************************************************//
  /* Header : Manipulation Sytem Class'leri ve Interfaceleri */
@@ -68,6 +68,10 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   public void teleopPeriodic() {
         //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
         Input_Processing_Class.Call_Driver_Periodic(true);
+
+
+        //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
+        Telemetry_Class.Defining_Variables_Smart_Dashboard();
   }
 
   @Override
