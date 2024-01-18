@@ -3,6 +3,7 @@ package frc.robot.DriverSystem;
 import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 
 public  class TelemetryModule {
      //Bu class Sensor entegrasyon class'inin devamı niteliğindedir
@@ -26,8 +27,12 @@ public  class TelemetryModule {
         //Motorların hız değerlerini çekiyoruz
         ArrayList<Double> Speeds = _Input_Processing.Get_Speed_Of_Each_Motors();
         //Aldığımız verileri Smart Dashboard'a yansıtıyoruz
+        System.out.println("Left Speed: " + Speeds.get(0) + ", Right Speed: " + Speeds.get(1));
          SmartDashboard.putNumber("Left motor Speed ", Speeds.get(0));
          SmartDashboard.putNumber("Right motor Speed ", Speeds.get(1));
+//          SmartDashboard.putNumber("RobotX", 2);
+// SmartDashboard.putNumber("RobotY", 4);
+// SmartDashboard.putNumber("RobotAngle", 120);
       }
      /*|EndRegion : Smart Dashboard İşlemleri|*/
 }

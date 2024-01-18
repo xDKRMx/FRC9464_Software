@@ -66,12 +66,7 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void teleopPeriodic() {
-        //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
-        Input_Processing_Class.Call_Driver_Periodic(true);
-
-
-        //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
-        Telemetry_Class.Defining_Variables_Smart_Dashboard();
+      
   }
 
   @Override
@@ -79,5 +74,13 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+
+        //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
+        Input_Processing_Class.Call_Driver_Periodic(true);
+
+
+        //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
+        Telemetry_Class.Defining_Variables_Smart_Dashboard();
+  }
 }

@@ -3,6 +3,7 @@ package frc.robot.DriverSystem;
 import com.revrobotics.CANSparkMax;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
@@ -22,11 +23,11 @@ public  class MotorControllerModule {
      //Ana differential Drive değişkenimiz
      public DifferentialDrive Main_Robot_Drive = new DifferentialDrive(Left_Leader, Right_Leader);
      //Motora ait bazı verilerin Tanımlamaları
-     private ArrayList<Double> Speed_Of_Each_Motors = new ArrayList<Double>();
+     private ArrayList<Double> Speed_Of_Each_Motors;
      // Constructor
      public MotorControllerModule()
      {
-        
+        Speed_Of_Each_Motors = new ArrayList<>(Collections.nCopies(2, 0.0));
      }
      
      /*|region : PWM MOTOR KONTROL  |*/
@@ -42,9 +43,18 @@ public  class MotorControllerModule {
       public void Teleop_Drive_Periodic(Joystick leftJoystick, Joystick rightJoystick)
       {
            //Burada bu joysticklerdeki axis'lerin itilme miktarını çektik
-           Speed_Of_Each_Motors.set(0, leftJoystick.getY());
+           if(leftJoystick != null && rightJoystick != null)
+           {
+            Speed_Of_Each_Motors.set(0, leftJoystick.getY());
           
            Speed_Of_Each_Motors.set(1, rightJoystick.getY());
+           }
+           else
+           {
+              Speed_Of_Each_Motors.set(0, 0d);
+           Speed_Of_Each_Motors.set(1, 0d);
+           }
+           
           //* */
           // Tank Drive sürüş tekniği şu şekildedir sürücünün robotu yönetmek için kullanacağı iki tane joystic vardır birisi sağ diğeri solu yönetir ve sürücü robotun hareket için bu Josyticklerin itilme miktarına göre robota harektini verir
           // Örneğin robotun ileri gitmesi için iki josytic'de aynı oranda ileri itilmeli sola doğru gitmesi için sağdaki josytick soldakinden daha fazla itilerek sağdaki motorun sola sapması sağlanması

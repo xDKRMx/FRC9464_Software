@@ -1,10 +1,28 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "SPARK MAX [0]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo"
     }
   },
   "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "NT3@127.0.0.1:49464": {
+      "open": true
+    },
+    "Server": {
+      "open": true
+    },
     "visible": true
   }
 }
