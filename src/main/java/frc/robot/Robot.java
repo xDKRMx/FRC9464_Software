@@ -35,19 +35,16 @@ public ClimberModule Climber_Class = new  ClimberModule();
 public ElevatorModule Elavator_Class = new  ElevatorModule();
 
  // *************************************************//
- /* Header : Driver Sytem Class'leri ve Interfaceleri */
+ /* Header  Diğer değişkenler ve sınıflar*/
 
 
  // *************************************************//
 
   public Robot() {
-   System.out.println("merhaba");
+
   }
-
-
   @Override
   public void robotInit() {
-
   }
 
   @Override
@@ -66,7 +63,10 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void teleopPeriodic() {
-      
+     //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
+  Input_Processing_Class.Call_Driver_Periodic(true);
+  //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
+  Telemetry_Class.Updating_Variables_Smart_Dashboard();
   }
 
   @Override
@@ -76,11 +76,5 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   @Override
   public void testPeriodic() {
 
-        //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
-        Input_Processing_Class.Call_Driver_Periodic(true);
-
-
-        //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
-        Telemetry_Class.Defining_Variables_Smart_Dashboard();
   }
 }

@@ -2,6 +2,8 @@ package frc.robot.DriverSystem;
 
 import edu.wpi.first.wpilibj.Joystick;
 
+//Simülasyonu bilgisayarda yapabilmek için klavye analog ataması
+import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
 public  class InputProcessingModule {
      //Bu class Motor Controllerla asenkron bir şekilde geliştirilecek yine içerisinde Robot için temel işlemleri barındıran kısım diyebiliriz
      // Bu class içerisindeki işlemler Input işlemleri olarak düşünülebilir yani Jostick'ten basılan bir tuşun nasıl işlem gereçekleştirileceğini buradan yapacağız
@@ -11,7 +13,8 @@ public  class InputProcessingModule {
      //Joystick tanımlamaları
      Joystick Left_Joystick = new Joystick(0);
      Joystick Right_Joystick = new Joystick(1); 
-
+     // Klavye Analog Tanımlaması 
+     KeyboardAnalog Add_Keyboard = new KeyboardAnalog();
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
       // Constructor
@@ -28,7 +31,9 @@ public  class InputProcessingModule {
         // bu fonksiyon içerisinde portlara takılmış olan Joystickleri kullanarak robotun periodic olarak motorlara güç verip hareket etmesini sağlayacağız
         if(Is_It_Teleop) 
         {
-         Motor_Controller_Module.Teleop_Drive_Periodic(Right_Joystick, Left_Joystick);
+         //Driver station üzerinden joysticklerin bağlı olup olmadığını kontrol ediyoruz eğer ki bağlı değilse keyboard üzerinden işlem yapmasını istiyoruz
+         if(Left_Joystick.isConnected() && Right_Joystick.isConnected()) Motor_Controller_Module.Teleop_Drive_Periodic(Right_Joystick, Left_Joystick);
+         else Motor_Controller_Module.Teleop_Drive_Periodic(null,null);
         }
         else
         {

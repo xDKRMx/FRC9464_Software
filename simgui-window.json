@@ -5,13 +5,13 @@
   "MainWindow": {
     "GLOBAL": {
       "fps": "120",
-      "height": "807",
+      "height": "720",
       "maximized": "0",
       "style": "0",
       "userScale": "2",
-      "width": "1847",
-      "xpos": "492",
-      "ypos": "424"
+      "width": "1280",
+      "xpos": "1177",
+      "ypos": "128"
     }
   },
   "Table": {
@@ -60,12 +60,12 @@
     },
     "###NetworkTables Info": {
       "Collapsed": "0",
-      "Pos": "674,542",
-      "Size": "750,145"
+      "Pos": "510,485",
+      "Size": "750,141"
     },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "1580,18",
+      "Pos": "1261,18",
       "Size": "250,695"
     },
     "###PWM Outputs": {

@@ -2,8 +2,18 @@ package frc.robot.DriverSystem;
 
 import java.util.ArrayList;
 
+import com.revrobotics.CANSparkMax;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Robot;
+
+// ek class'Lerin tanımalanması için 
+import frc.robot.DriverSystem.AdditionalClasses.*;
 
 public  class TelemetryModule {
      //Bu class Sensor entegrasyon class'inin devamı niteliğindedir
@@ -14,25 +24,65 @@ public  class TelemetryModule {
      //Not : Bu class SensorIntegration'dan çok da farklı bir class olarak düşünülmemelidir burada sadece o class içerisinde kod karmaşası yaşanmaması için bazı kompleks olabilecek kodları buraya yazmaya söz konusudur.
      //Bu class'deki fonksiyonların ve bir çok değişkeninin public olarak tanımlanması veya OOP(Object oriented) mantığı ile encapsulation olarak tanımlanmış olması kodun ilerleyişi açısından daha iyi olur.
       /************************************************** */ 
-      private MotorControllerModule _Input_Processing ;
+      private MotorControllerModule _Motor_Controller ;
+      // Smart Dashboard'da görüntülenebilmeesi için örnek sanal robot örneği
+      // private final DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(0.6); // 0.6 metre tekerlek mesafesi
+      private DifferentialDrivetrainSim drivetrainSimulator;
+      public Pose2dSendable Pose_Sendable ;
      //Constructor
-     public TelemetryModule(MotorControllerModule Input_Processing)
+     public TelemetryModule(MotorControllerModule Motor_Controller)
      {
-        _Input_Processing  = Input_Processing;
+        _Motor_Controller  = Motor_Controller;
+        Defining_Variables_Smart_Dashboard();
      }
+
      /*|region : Smart Dashboard İşlemleri|*/
-      
-      public void Defining_Variables_Smart_Dashboard()
+      public void Updating_Variables_Smart_Dashboard()
       {
+         
+         ArrayList<CANSparkMax> Leader_Motors = _Motor_Controller.Get_Leader_Motors();
+         double leftMotorSpeed = Leader_Motors.get(0).get();
+        double rightMotorSpeed = Leader_Motors.get(1).get();
+        // Motor çıkışlarını simülasyon modeline uygula
+        drivetrainSimulator.setInputs(leftMotorSpeed * RobotController.getInputVoltage(), rightMotorSpeed * RobotController.getInputVoltage()); // 12.0, motorların maksimum voltajını temsil eder.
+        // Simülasyonu güncelle
+        drivetrainSimulator.update(0.02); // 20 ms zaman adımı
+        // Simülasyondan alınan robot pozisyonu SmartDashboard'a gönderilir.
         //Motorların hız değerlerini çekiyoruz
-        ArrayList<Double> Speeds = _Input_Processing.Get_Speed_Of_Each_Motors();
-        //Aldığımız verileri Smart Dashboard'a yansıtıyoruz
-        System.out.println("Left Speed: " + Speeds.get(0) + ", Right Speed: " + Speeds.get(1));
+         ArrayList<Double> Speeds = _Motor_Controller.Get_Speed_Of_Each_Motors();
+          //Aldığımız verileri Smart Dashboard'a yansıtıyoruz
          SmartDashboard.putNumber("Left motor Speed ", Speeds.get(0));
          SmartDashboard.putNumber("Right motor Speed ", Speeds.get(1));
-//          SmartDashboard.putNumber("RobotX", 2);
-// SmartDashboard.putNumber("RobotY", 4);
-// SmartDashboard.putNumber("RobotAngle", 120);
+         // Robotun anlık pozisyonunu al
+         Pose2d newPose = drivetrainSimulator.getPose();
+         Pose_Sendable = new Pose2dSendable(newPose,0.6d,0.6d,1d,0.6d);
+         SmartDashboard.putData("RobotPose", Pose_Sendable);
+         
       }
+      public void Defining_Variables_Smart_Dashboard()
+      {
+         //SmartDashBoard'da girilecek değerleri tanımlıyoruz
+         SmartDashboard.putNumber("Left motor Speed ", 0.0d);
+         SmartDashboard.putNumber("Right motor Speed ", 0.0d);
+         //
+         //BURADAKİ VERİLER GEÇİCİDİR BU VERİLER SENSÖR ENTEGRASYONUNDAKİ SENSÖRLERDEKİ DEĞERLER GİRİLENE KADAR TEMSİLİ OLARAK YANSITIR
+             Pose2d initialPose = new Pose2d(0, 0, new Rotation2d());
+             Pose_Sendable = new Pose2dSendable(initialPose,0.6d,0.6d,1d,0.6d);
+             SmartDashboard.putData("RobotPose", Pose_Sendable);
+
+            final double KvLinear = 2.0; // volt seg^-1 başına metre (sürüş hızı için tipik bir FRC robot değeri)
+            final double KaLinear = 0.8; // volt seg^-2 başına metre (sürüş ivmesi için tipik bir FRC robot değeri)
+            final double KvAngular = 1.5; // volt seg^-1 başına radyan (dönüş hızı için tipik bir FRC robot değeri)
+            final double KaAngular = 0.7;
+            drivetrainSimulator = new DifferentialDrivetrainSim(
+            LinearSystemId.identifyDrivetrainSystem(KvLinear, KaLinear, KvAngular, KaAngular), // Bu değerler robotunuzun gerçek sürüş karakteristiklerine göre ayarlanmalıdır.
+            DCMotor.getNEO(2), // Her bir taraf için 2 Falcon 500 motor varsayalım.
+            7.29, // Dişli oranı
+            7.5, // Dönme kütlesi kg*m^2
+            0.0762, // Tekerlek çapı (metre)
+            null // Şasi ağırlığı varsayılan olarak alınabilir, ya da belirli bir ağırlık belirtilebilir.
+         );
+      }
+      
      /*|EndRegion : Smart Dashboard İşlemleri|*/
 }

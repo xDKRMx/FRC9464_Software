@@ -1,5 +1,7 @@
 package frc.robot.DriverSystem;
 
+
+
 import com.revrobotics.CANSparkMax;
 
 import java.util.ArrayList;
@@ -9,13 +11,17 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+//Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
+import frc.robot.DriverSystem.AdditionalClasses.*;
+
 public  class MotorControllerModule {
      //Bu class bir nevi bizim için bir çok class içerisinde kullanacağımız ve robottaki bir çok kodun temelini oluşturacak bir class. 
      // Bu class içerisindeki işlemler bir nevi robotun içerisindeki temel dinamikler diyebilirim bu temel dinamiklere örnek olarak sürüş, dönme hareket durma ivmeli hareket vs.
      //Bu class'deki fonksiyonların ve  bir çok değişkeninin public olarak tanımlanması veya OOP(Object oriented) mantığı ile encapsulation olarak tanımlanmış olması kodun ilerleyişi açısından daha iyi olur.
     /************************************************** */ 
+    //Ek modüllerin tanımlaması
+    KeyboardAnalog Key_Analog = new KeyboardAnalog();
     // Motorların tanımlamaları
-
     private final  CANSparkMax Left_Leader = new CANSparkMax(0,MotorType.kBrushless);
     private final  CANSparkMax Left_Follower= new CANSparkMax(1,MotorType.kBrushless);
      private final  CANSparkMax Right_Leader = new CANSparkMax(2,MotorType.kBrushless);
@@ -37,6 +43,7 @@ public  class MotorControllerModule {
      {
        Left_Follower.follow(Left_Leader);
        Right_Folower.follow(Right_Leader);
+       
      }
 
      // Periodic Metot //Teleop metotlar için
@@ -46,13 +53,16 @@ public  class MotorControllerModule {
            if(leftJoystick != null && rightJoystick != null)
            {
             Speed_Of_Each_Motors.set(0, leftJoystick.getY());
-          
-           Speed_Of_Each_Motors.set(1, rightJoystick.getY());
+            Speed_Of_Each_Motors.set(1, rightJoystick.getY());
            }
            else
            {
-              Speed_Of_Each_Motors.set(0, 0d);
-           Speed_Of_Each_Motors.set(1, 0d);
+             //Eğer ki joystickler tanımlı depilse joystick'in görevlerini geçici süreliğine Klavyeden yazılan tuşlar üstlenecek
+             Key_Analog.periodic_KeyListener();
+             
+             Speed_Of_Each_Motors.set(0,  Key_Analog.Motor_Speed_Key_Analog("Left"));
+             Speed_Of_Each_Motors.set(1,  Key_Analog.Motor_Speed_Key_Analog("Right"));
+             
            }
            
           //* */
@@ -69,7 +79,13 @@ public  class MotorControllerModule {
       {
          return  Speed_Of_Each_Motors;
       }
-
+      public ArrayList<CANSparkMax> Get_Leader_Motors()
+      {
+         ArrayList<CANSparkMax> Can_Spark = new ArrayList<CANSparkMax>();
+         Can_Spark.add(Left_Leader);
+          Can_Spark.add(Right_Leader);
+         return Can_Spark;
+      }
        /*|Endregion : PWM MOTOR KONTROL  |*/
 }
 
