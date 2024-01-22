@@ -34,6 +34,8 @@ public  class MotorControllerModule {
      public MotorControllerModule()
      {
         Speed_Of_Each_Motors = new ArrayList<>(Collections.nCopies(2, 0.0));
+        Left_Leader.set(0);
+        Right_Leader.set(0);
      }
      
      /*|region : PWM MOTOR KONTROL  |*/
@@ -64,14 +66,23 @@ public  class MotorControllerModule {
              Speed_Of_Each_Motors.set(1,  Key_Analog.Motor_Speed_Key_Analog("Right"));
              
            }
-           
+
+          //ARCADE DRIVE ALGORİTMASI
           //* */
+          //Arcade Drive sürüş tekniği şu şekildedir. Sürücünün robotu yönetmek için elinde tek bir joystick vardır bu Josytick'deki ilk arduinosu robotun hareketini kontrol edebilmemizi sağlar joystick'deki diğer arduinosu ise robotun ileri ve geri hareketini sağlar
+          // burada tek bir joystic olduğu için kontrol olarak Tank Drive'dan daha rahattır ancak daha klasik hareketlere olanak tanır
+          //Joystick'de  hem sol motoru  hem de sağ motoru aynı motor olarak varsayıp tek bir motor olarak ayarlamalıyız
+          //Arcade drive'da bu yüzden ilk paramatre motora verilen hızı sağdaki parametre ise dönüşü sağlar
+         //Main_Robot_Drive.arcadeDrive( Speed_Of_Each_Motors.get(0),Speed_Of_Each_Motors.get(1));
+
+         //TANK DRIVE ALGORİTMASI
+         //* */
           // Tank Drive sürüş tekniği şu şekildedir sürücünün robotu yönetmek için kullanacağı iki tane joystic vardır birisi sağ diğeri solu yönetir ve sürücü robotun hareket için bu Josyticklerin itilme miktarına göre robota harektini verir
           // Örneğin robotun ileri gitmesi için iki josytic'de aynı oranda ileri itilmeli sola doğru gitmesi için sağdaki josytick soldakinden daha fazla itilerek sağdaki motorun sola sapması sağlanması
           //* */
           //Robotumuzu tank Drive bir şekilde geliştireceğimiz için bu tanımladığımız Right ve Left Leader'laarın motorlarına verilen bir güç olmalı 
          //Bu gücü de Input Processing Class'i içerisinde tanımlanmış joystick'lerin yön tuşlarındaki kolun ne kadar itildiğine bağlı olarak alacağı değere bağlı olacak. Artı olarak parametrelere değerini Input Processing'deki Joystickler Verecek 
-         Main_Robot_Drive.tankDrive( Speed_Of_Each_Motors.get(0),Speed_Of_Each_Motors.get(1));
+          Main_Robot_Drive.tankDrive( Speed_Of_Each_Motors.get(0),Speed_Of_Each_Motors.get(1));
       }
 
       //Sensör entegrasyon ve Telemetri modüllerinde bu tarz fonksiyonlardan yararlanarak robotun verilerini alacağız

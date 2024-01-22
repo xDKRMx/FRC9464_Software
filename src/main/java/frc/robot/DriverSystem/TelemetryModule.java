@@ -29,6 +29,7 @@ public  class TelemetryModule {
       // private final DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(0.6); // 0.6 metre tekerlek mesafesi
       private DifferentialDrivetrainSim drivetrainSimulator;
       public Pose2dSendable Pose_Sendable ;
+   Pose2d newPose;
      //Constructor
      public TelemetryModule(MotorControllerModule Motor_Controller)
      {
@@ -54,16 +55,19 @@ public  class TelemetryModule {
          SmartDashboard.putNumber("Left motor Speed ", Speeds.get(0));
          SmartDashboard.putNumber("Right motor Speed ", Speeds.get(1));
          // Robotun anlık pozisyonunu al
-         Pose2d newPose = drivetrainSimulator.getPose();
-         Pose_Sendable = new Pose2dSendable(newPose,0.6d,0.6d,1d,0.6d);
-         SmartDashboard.putData("RobotPose", Pose_Sendable);
+         newPose = drivetrainSimulator.getPose();
+         Pose_Sendable.setPose(newPose);
+          
+         // SendableRegistry.add(Pose_Sendable, "RobotPose");
+         
+         // SmartDashboard.putData("RobotPose", Pose_Sendable);
          
       }
       public void Defining_Variables_Smart_Dashboard()
       {
          //SmartDashBoard'da girilecek değerleri tanımlıyoruz
-         SmartDashboard.putNumber("Left motor Speed ", 0.0d);
-         SmartDashboard.putNumber("Right motor Speed ", 0.0d);
+         // SmartDashboard.putNumber("Left motor Speed ", 0.0d);
+         // SmartDashboard.putNumber("Right motor Speed ", 0.0d);
          //
          //BURADAKİ VERİLER GEÇİCİDİR BU VERİLER SENSÖR ENTEGRASYONUNDAKİ SENSÖRLERDEKİ DEĞERLER GİRİLENE KADAR TEMSİLİ OLARAK YANSITIR
              Pose2d initialPose = new Pose2d(0, 0, new Rotation2d());
