@@ -72,6 +72,8 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void testPeriodic() {
+     //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
+     Motor_Controller_Class.Robot_Status_Control();
   //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
   Input_Processing_Class.Call_Driver_Periodic(true);
   //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi

@@ -121,8 +121,6 @@ public  class MotorControllerModule {
         //İLK ALTERNATİF
          while(Current_Difference > max_Difference)
          {
-            PIDController PID_ = new PIDController(0.1,0.01,0.5);
-            Double output =PID_.calculate(Current_Difference, Current_Difference);
 
             Current_Difference /= 2;
             if(Current_Difference <= max_Difference)
