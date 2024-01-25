@@ -2,8 +2,6 @@ package frc.robot.DriverSystem;
 
 import java.util.ArrayList;
 
-import com.revrobotics.CANSparkMax;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -40,20 +38,22 @@ public  class TelemetryModule {
      /*|region : Smart Dashboard İşlemleri|*/
       public void Updating_Variables_Smart_Dashboard()
       {
-         
-         ArrayList<CANSparkMax> Leader_Motors = _Motor_Controller.Get_Leader_Motors();
-         double leftMotorSpeed = Leader_Motors.get(0).get();
-        double rightMotorSpeed = Leader_Motors.get(1).get();
         // Motor çıkışlarını simülasyon modeline uygula
-        drivetrainSimulator.setInputs(leftMotorSpeed * RobotController.getInputVoltage(), rightMotorSpeed * RobotController.getInputVoltage()); // 12.0, motorların maksimum voltajını temsil eder.
+         ArrayList<Double> Leader_Motors = _Motor_Controller.Get_Power_Of_Each_Motors() ;
+        drivetrainSimulator.setInputs(Leader_Motors.get(0) * RobotController.getInputVoltage(), Leader_Motors.get(1) * RobotController.getInputVoltage()); // 12.0, motorların maksimum voltajını temsil eder.
         // Simülasyonu güncelle
         drivetrainSimulator.update(0.02); // 20 ms zaman adımı
         // Simülasyondan alınan robot pozisyonu SmartDashboard'a gönderilir.
         //Motorların hız değerlerini çekiyoruz
-         ArrayList<Double> Speeds = _Motor_Controller.Get_Speed_Of_Each_Motors();
+         ArrayList<Double> Powers = _Motor_Controller.Get_Power_Of_Each_Motors();
           //Aldığımız verileri Smart Dashboard'a yansıtıyoruz
-         SmartDashboard.putNumber("Left motor Speed ", Speeds.get(0));
-         SmartDashboard.putNumber("Right motor Speed ", Speeds.get(1));
+         SmartDashboard.putNumber("Left motor POWER ", Powers.get(0));
+         SmartDashboard.putNumber("Right motor POWER ", Powers.get(1));
+
+         // ROBOTUN VAROLAN HIZI
+          Double[] Speeds = _Motor_Controller.Sensor_Integration.Get_Motors_Speed();
+           SmartDashboard.putNumber("Left motor SPEED ", Speeds[0]);
+         SmartDashboard.putNumber("Right motor SPEED ", Speeds[1]);
          // Robotun anlık pozisyonunu al
          newPose = drivetrainSimulator.getPose();
          Pose_Sendable.setPose(newPose);
@@ -73,7 +73,7 @@ public  class TelemetryModule {
              Pose2d initialPose = new Pose2d(0, 0, new Rotation2d());
              Pose_Sendable = new Pose2dSendable(initialPose,0.6d,0.6d,1d,0.6d);
              SmartDashboard.putData("RobotPose", Pose_Sendable);
-
+             
             final double KvLinear = 2.0; // volt seg^-1 başına metre (sürüş hızı için tipik bir FRC robot değeri)
             final double KaLinear = 0.8; // volt seg^-2 başına metre (sürüş ivmesi için tipik bir FRC robot değeri)
             final double KvAngular = 1.5; // volt seg^-1 başına radyan (dönüş hızı için tipik bir FRC robot değeri)

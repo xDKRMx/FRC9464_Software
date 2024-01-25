@@ -1,11 +1,8 @@
 package frc.robot.DriverSystem;
 
-import javax.swing.text.html.parser.Element;
-
 import edu.wpi.first.wpilibj.Joystick;
 
 //Simülasyonu bilgisayarda yapabilmek için klavye analog ataması
-import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
 public  class InputProcessingModule {
      //Bu class Motor Controllerla asenkron bir şekilde geliştirilecek yine içerisinde Robot için temel işlemleri barındıran kısım diyebiliriz
      // Bu class içerisindeki işlemler Input işlemleri olarak düşünülebilir yani Jostick'ten basılan bir tuşun nasıl işlem gereçekleştirileceğini buradan yapacağız
@@ -17,9 +14,6 @@ public  class InputProcessingModule {
      Joystick Right_Joystick = new Joystick(1); 
      private int Active_left_button = -1;
      private int Active_right_button = -1;
-     private 
-     // Klavye Analog Tanımlaması 
-     KeyboardAnalog Add_Keyboard = new KeyboardAnalog();
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
      /***************************/ 
@@ -60,6 +54,7 @@ public  class InputProcessingModule {
           else if(Left_Joystick.getRawButton(3)) Active_left_button = 3;
           else if(Left_Joystick.getRawButton(4)) Active_left_button = 4;
           else Active_left_button = -1;
+           //Right JoystickControl
           if(Right_Joystick.getRawButton(1))   Active_right_button = 1;
           else if(Right_Joystick.getRawButton(2)) Active_right_button = 2;
           else if(Right_Joystick.getRawButton(3)) Active_right_button = 3;
@@ -71,6 +66,7 @@ public  class InputProcessingModule {
 
        /*| End Region : JOYSTICK DÜĞME İŞLEME| */
       /***************************/
+
       /*| Region : HATA YÖNETİMİ VE GÜVENLİK KONTROL| */
        //Joysticklerden gelen sinyalleri işlemek için algoritma
        //Periodic metot

@@ -24,9 +24,10 @@ public class Robot extends TimedRobot {
  /* Header : Driver Sytem Class'leri ve Interfaceleri */
 public MotorControllerModule Motor_Controller_Class = new  MotorControllerModule();
 public InputProcessingModule Input_Processing_Class = new  InputProcessingModule(Motor_Controller_Class);
-public SensorIntegrationModule Sensor_Integration_Class = new  SensorIntegrationModule();
 public TelemetryModule Telemetry_Class = new  TelemetryModule(Motor_Controller_Class);
 
+//Bu class'i yorum satırına aldım çüknü bu class içerisindeki işlemlerin, fonksiyonların, değişkenlerin hepsini biz Robot.java Dışındaki class'lerden kullanacağız. Yani Robot.java'da bu class'i Instance'ını almaya gerek yok 
+// public SensorIntegrationModule Sensor_Integration_Class = new  SensorIntegrationModule();
 // *************************************************//
  /* Header : Manipulation Sytem Class'leri ve Interfaceleri */
 public IntakeModule Intake_Class = new  IntakeModule();
@@ -73,7 +74,8 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   @Override
   public void testPeriodic() {
      //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
-     Motor_Controller_Class.Robot_Status_Control();
+      Motor_Controller_Class.Robot_Status_Control();
+      Motor_Controller_Class.Follow_Periodic();
   //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
   Input_Processing_Class.Call_Driver_Periodic(true);
   //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
