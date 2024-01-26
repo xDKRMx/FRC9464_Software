@@ -68,16 +68,11 @@ public  class InputProcessingModule {
       /***************************/
 
   //PID çağırma
-  public String PID(String pow_control_ipm, int x){
+  public String PID(String pow_control_ipm){
     if(Active_right_button==2){
-   x=1;
-    while(x==1){
     pow_control_ipm="PID";
-    //Double[] Current_Speed1 = Motor_Controller_Module.Sensor_Integration.Get_Motors_Speed();
-    //ArrayList<Double> PID_parametres1= Motor_Controller_Module.PID_parametres(0.1,0.01,0.001);
-    //Motor_Controller_Module.Motor_Velocity_Equation(5d, Current_Speed1);
+    return pow_control_ipm;
   }
-    }
     else{
     pow_control_ipm="Stability";
     }
