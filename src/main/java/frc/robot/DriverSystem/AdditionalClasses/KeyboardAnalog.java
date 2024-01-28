@@ -5,6 +5,7 @@ import java.util.HashSet;
 import javax.swing.JFrame;
 
 import frc.robot.DriverSystem.MotorControllerModule;
+import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
 
 public  class KeyboardAnalog  extends JFrame{
     // POWER DEĞERLERİ 
@@ -13,6 +14,7 @@ public  class KeyboardAnalog  extends JFrame{
      private final HashSet<Integer> pressedKeys = new HashSet<>();
      // Ek modüllerin tanımlanması
       private MotorControllerModule Motor_Controller;
+    
    public KeyboardAnalog(MotorControllerModule _Motor_Controller)
    {
         Motor_Controller = _Motor_Controller;
@@ -54,19 +56,31 @@ public  class KeyboardAnalog  extends JFrame{
         //  else Power_amount_RIGHT = 0;
 
           //************************//
-
-
         //TANK DRİVE İÇİN UPDATE SPEED İŞLEMİ
          //************************//
-         /*Robotun SOL motor hızını ayarlama işlemi*/
-      if (pressedKeys.contains(KeyEvent.VK_W))  Power_amount_LEFT = increaseSpeed(Power_amount_LEFT);
-      else if (pressedKeys.contains(KeyEvent.VK_S))  Power_amount_LEFT = decreaseSpeed(Power_amount_LEFT);
-       else Power_amount_LEFT = 0;
+
+         //Bu if koşulunun sebebi eğer ki robotun motorlarındaki kontrol Motor_Velocity_Equation() metodu tarafından sağlanıyorsa bu metot iki motorun da güçlerini eşitlemek istediği için kalvye analogundan gelen değerler çakışmaması için koşul koyulmuştur
+        if( Motor_Controller.robot_Status != RobotStatus.CONSTANTPOWER)
+        {
+             /*Robotun SOL motor hızını ayarlama işlemi*/  
+             if (pressedKeys.contains(KeyEvent.VK_W))  Power_amount_LEFT = increaseSpeed(Power_amount_LEFT);
+             else if (pressedKeys.contains(KeyEvent.VK_S))  Power_amount_LEFT = decreaseSpeed(Power_amount_LEFT);
+             else 
+             {
+                if(Motor_Controller.robot_Status != RobotStatus.TURNING)
+               Power_amount_LEFT = 0;
+             }
+           
+               /*Robotun SAĞ motor hızını ayarlama işlemi*/
+              if (pressedKeys.contains(KeyEvent.VK_UP))  Power_amount_RIGHT =increaseSpeed(Power_amount_RIGHT); 
+              else if (pressedKeys.contains(KeyEvent.VK_DOWN)) Power_amount_RIGHT = decreaseSpeed(Power_amount_RIGHT); 
+             else 
+             {
+               if(Motor_Controller.robot_Status != RobotStatus.TURNING )
+                  Power_amount_RIGHT = 0;
+             }
+        }
     
-        /*Robotun SAĞ motor hızını ayarlama işlemi*/
-       if (pressedKeys.contains(KeyEvent.VK_UP))  Power_amount_RIGHT = increaseSpeed(Power_amount_RIGHT); 
-       else if (pressedKeys.contains(KeyEvent.VK_DOWN)) Power_amount_RIGHT = decreaseSpeed(Power_amount_RIGHT); 
-       else Power_amount_RIGHT = 0;
 
           //************************//
       // KLAVYEDE DİĞER TUŞLARA BASILDIĞI ZAMAN GERÇEKLEŞECEKLER
@@ -77,9 +91,22 @@ public  class KeyboardAnalog  extends JFrame{
       {
         Motor_Controller.Motor_Power_Control = "Stability";
       }
-
+      
+       if(pressedKeys.contains(KeyEvent.VK_RIGHT))
+      {
+       
+        Motor_Controller.Rotate_Robot(1d,true);
+        
+      }else if(pressedKeys.contains(KeyEvent.VK_LEFT))
+      {
+        Motor_Controller.Rotate_Robot(1d,false);
+      }
+      else {
+         Motor_Controller.Stop_Rotating();
+      }
     }
-    
+
+
     private double increaseSpeed(double currentSpeed) {
         return Math.min(currentSpeed + 0.05, 1f); // Maksimum hızı 1 olarak sınırla
     }
@@ -87,28 +114,6 @@ public  class KeyboardAnalog  extends JFrame{
     private double decreaseSpeed(double currentSpeed) {
         return Math.max(currentSpeed - 0.05, -1f); // Minimum hızı -1 olarak sınırla
     }
-
-     /*Burası tam istenildiği gibi çalışmadığı için yorum satırına alındı */ 
-    // private double reduceToZero(boolean Is_It_Left) {
-    //     // if(Is_It_Left)
-    //     // {
-    //     //   while(Power_amount_LEFT != 0 && isDecreasingLeft)
-    //     //   {
-    //     //     Float change = Power_amount_LEFT > 0 ? -0.1f : 0.1f;
-    //     //     Power_amount_LEFT += change ;
-    //     //   }
-    //     // }
-    //     // else
-    //     // {
-    //     //      while(Power_amount_RIGHT != 0 && isDecreasingRight)
-    //     //      {
-    //     //       Float change = Power_amount_RIGHT > 0 ?-0.1f : 0.1f;
-    //     //       Power_amount_RIGHT += change ;
-    //     //      }
-    //     // }
-    //     return 0; // Eğer hız zaten 0 ise, değişiklik yapma
-    // }
-
      public double Motor_Speed_Key_Analog(String Left_or_Right)
      {
         //Buradan hangi numaralı tuşa basıldığını algılayıp ona göre değer döndüreceğiz

@@ -15,12 +15,14 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.DriverSystem.AdditionalClasses.*;
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
- enum RobotStatus {
-  DYNAMIC,
-  IDLE,
-  TURNING
-}
+
 public  class MotorControllerModule {
+       public enum RobotStatus {
+        DYNAMIC,
+        IDLE,
+        TURNING,
+        CONSTANTPOWER
+       }
      //Bu class bir nevi bizim için bir çok class içerisinde kullanacağımız ve robottaki bir çok kodun temelini oluşturacak bir class. 
      // Bu class içerisindeki işlemler bir nevi robotun içerisindeki temel dinamikler diyebilirim bu temel dinamiklere örnek olarak sürüş, dönme hareket durma ivmeli hareket vs.
      //Bu class'deki fonksiyonların ve  bir çok değişkeninin public olarak tanımlanması veya OOP(Object oriented) mantığı ile encapsulation olarak tanımlanmış olması kodun ilerleyişi açısından daha iyi olur.
@@ -31,7 +33,7 @@ public  class MotorControllerModule {
     //Robotun durumu
     public RobotStatus robot_Status;
     // Motorların tanımlamaları
-    private   CANSparkMax Left_Leader = new CANSparkMax(0,MotorType.kBrushless);
+    private  CANSparkMax Left_Leader = new CANSparkMax(0,MotorType.kBrushless);
      private  CANSparkMax Right_Leader = new CANSparkMax(1,MotorType.kBrushless);
       private CANSparkMax Left_Follower= new CANSparkMax(2,MotorType.kBrushless);
      private  CANSparkMax Right_Folower = new CANSparkMax(3,MotorType.kBrushless);
@@ -52,14 +54,8 @@ public  class MotorControllerModule {
        Biz bu fonksiyonları uygulamazsak bunun halinde motorlar arası  hız farkı çok olabilir bu da robotu çok hızlı döndürerek bozabilir
       */
      public String Motor_Power_Control;
-     // PID değişkenlerinin tanımlamaları
-    //  private double previous_Left_error = 0.0;
-    //  private double previous_Right_error = 0.0;
-    //  private double integral_sum_LEFT = 0.0;
-    //  private double integral_sum_Right = 0.0;
-    //  private double dt = 0.01;
      private ArrayList<Double> PID_Coefficients;
-
+      public boolean Robot_Turning;
      /**********************************/
      // Constructor
      public MotorControllerModule()
@@ -103,17 +99,15 @@ public  class MotorControllerModule {
        Right_Folower.follow(Right_Leader);
      }
 
-     // Periodic Metot //Teleop metotlar için
+     //Periodic Metot //Teleop metotlar için
       public void Teleop_Drive_Periodic(Joystick leftJoystick, Joystick rightJoystick)
       {
            //Burada bu joysticklerdeki axis'lerin itilme miktarını çektik
            if(leftJoystick != null && rightJoystick != null)
            {
-          
             // Mevcut motorun güçlerini al
              double currentLeftInput = Power_Of_Each_Motors.get(0);
              double currentRightInput = Power_Of_Each_Motors.get(1);
-
              // Joystick inputlarını al veya varsayılan olarak 0 kabul et
              double leftJoystickInput = leftJoystick.getY();
              double rightJoystickInput =  rightJoystick.getY();
@@ -127,8 +121,11 @@ public  class MotorControllerModule {
            {
              //Eğer ki joystickler tanımlı depilse joystick'in görevlerini geçici süreliğine Klavyeden yazılan tuşlar üstlenecek
              Key_Analog.periodic_KeyListener();
-             Power_Of_Each_Motors.set(0,  Key_Analog.Motor_Speed_Key_Analog("Left"));
-             Power_Of_Each_Motors.set(1,  Key_Analog.Motor_Speed_Key_Analog("Right"));
+             if(robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
+             {
+              Power_Of_Each_Motors.set(0,  Key_Analog.Motor_Speed_Key_Analog("Left"));
+              Power_Of_Each_Motors.set(1,  Key_Analog.Motor_Speed_Key_Analog("Right"));
+             }
              
            }
 
@@ -150,26 +147,70 @@ public  class MotorControllerModule {
 
           if(Motor_Power_Control == "Stability")
           {
-           Motor_Stability(0.2d);
+            if(robot_Status != RobotStatus.TURNING)
+            {
+             Motor_Stability(0.2d);
+            }
+          
           }
           else if(Motor_Power_Control == "PID")
           {
+            if(robot_Status != RobotStatus.TURNING)
+            {
              // PID sistemli motor güç kontrolünü çağırın
-             Double[] Current_Speed = Sensor_Integration.Get_Motors_Speed();
+              Double[] Current_Speed = Sensor_Integration.Get_Motors_Speed();
              //BURADAKİ DEĞERLER DENEME YANILMA MAKSADIYLA GİRİLMİŞTİR DEĞİŞTİRİLEBİLİR
-             PID_parametres(0.1,0.01,0.001);
+             // PID_parametres(0.1,0.01,0.001);
              //Buradaki SetPoint değeri İstenilen hızı temsil etmektedir 
              //bizim PID algoritmasını yazarken ki amacımız aslında hem sağ hem de sol motorun hızını istenilen değere yani Setpoint değerine sabitlemek (Set point değeri değişken olabilir ancak bu bir hızı değeridir, motorların istenilen hız değeri)
-             Motor_Velocity_Equation(5d, Current_Speed);
+             Motor_Velocity_Equation((Power_Of_Each_Motors.get(0) + Power_Of_Each_Motors.get(1)) / 2, Current_Speed);
+             }
           }
-          // Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
-          Left_Leader.set( Power_Of_Each_Motors.get(0));
-          Right_Leader.set(Power_Of_Each_Motors.get(1));
-      }
+           Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
+       }
+
+       //Ramping algoritması ile Klavye analogundaki ani hızlanmaları engellediğimiz gibi Joystick'de ani hızlanmaları engelleyip daha pürüzsüz ve akıcı bir hızlanma sağlıyor 
+        private double rampMotorInput(double currentpower, double joystickInput, double RAMP_RATE) {
+         if (Math.abs(joystickInput - currentpower) > RAMP_RATE) {
+             // Joystick input, mevcut hızdan yeterince farklıysa ramp yap
+             if (currentpower < joystickInput) {
+                 currentpower += RAMP_RATE;
+             } else if (currentpower > joystickInput) {
+                 currentpower -= RAMP_RATE;
+             }
+         } else {
+             // Joystick input ile mevcut hız arasındaki fark çok küçükse, inputu direkt kullan
+             currentpower = joystickInput;
+         }
+         // Hızı -1 ile 1 arasında sınırla
+         return Math.max(-1.0, Math.min(1.0, currentpower));
+        }
+
+        //Robotun İstenilen yönde dönmesini Sağlayan Turning metodu bu metod ile biz motora istediğimiz gibi saat yönünde veya saat yönünün tersine bir rotasyon işlemi uygulayabileceğiz (ROBOT HEM STATİKKEN HEM DE HAREKET HALİNDEYKEN)
+        //Periodic kontrol metodu 
+        // Hem Teleop hem de Autonomous için kullanılabilir
+        public void Rotate_Robot(double Turning_Speed,Boolean Positive_Rotation)
+        {
+          //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
+              robot_Status = RobotStatus.TURNING;
+              Power_Of_Each_Motors.set(0,  Positive_Rotation ? -Turning_Speed : Turning_Speed);
+              Power_Of_Each_Motors.set(1,   Positive_Rotation ? Turning_Speed : -Turning_Speed);
+        } 
+        public void Stop_Rotating()
+        {
+          robot_Status = RobotStatus.DYNAMIC;
+        }
+
+    /*|Endregion : CAN MOTOR KONTROL  |*/
+        /***************************/
+
+       /* | Region : MOTOR DURUM İZLEME  |*/
+
        //Motorlara verilen güçlerin stabilitesi ve max motor gücü farkı
        void Motor_Stability(Double max_Difference)
        {
          double Current_Difference = Math.abs(Power_Of_Each_Motors.get(0) - Power_Of_Each_Motors.get(1));
+         robot_Status = RobotStatus.DYNAMIC;
         // Current Difference Control
         //İLK ALTERNATİF
          if(Current_Difference > max_Difference)
@@ -204,59 +245,33 @@ public  class MotorControllerModule {
          // }
        }
 
-       //Ramping algoritması ile Klavye analogundaki ani hızlanmaları engellediğimiz gibi Joystick'de ani hızlanmaları engelleyip daha pürüzsüz ve akıcı bir hızlanma sağlıyor 
-       private double rampMotorInput(double currentpower, double joystickInput, double RAMP_RATE) {
-         if (Math.abs(joystickInput - currentpower) > RAMP_RATE) {
-             // Joystick input, mevcut hızdan yeterince farklıysa ramp yap
-             if (currentpower < joystickInput) {
-                 currentpower += RAMP_RATE;
-             } else if (currentpower > joystickInput) {
-                 currentpower -= RAMP_RATE;
-             }
-         } else {
-             // Joystick input ile mevcut hız arasındaki fark çok küçükse, inputu direkt kullan
-             currentpower = joystickInput;
-         }
-         // Hızı -1 ile 1 arasında sınırla
-         return Math.max(-1.0, Math.min(1.0, currentpower));
-     }
-    /*|Endregion : CAN MOTOR KONTROL  |*/
-        /***************************/
-
-       /* | Region : MOTOR DURUM İZLEME  |*/
        // !!! PID SİSTEMİ İLE KONTROL YAPILMAKTADIR !!! //
        //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
-        public void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
+         void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
         {
             // Robotun durumunu kontrol et
            if(robot_Status != RobotStatus.IDLE)
            {
            // PID kontrol algoritmasını çalıştır
            //PID'nin coefficient değerlerini PID_parametres fonksiyonundaki değerler belirliyor
-            PIDController pid_controller = new PIDController(PID_Coefficients.get(0),PID_Coefficients.get(1), PID_Coefficients.get(2)); 
-            //Bu çıktı değerleri robotun hızını veriyor ve bu hız değeri 1 ile -1 arasında olmayabilir biz robota hız değeri değil güç değeri vereceğimiz için robotun hızı ne ise ona göre -1 ile 1 arasında bir değere ölçeklendirelim
-            double output_Left = pid_controller.calculate(Desired_Speed, Current_Speed[0]);
-            double output_Right = pid_controller.calculate(Desired_Speed, Current_Speed[1]);
-           // Çıktı değerlerini ölçeklendir (-1 ile 1 arasında )
-           Double Output_Left_Scaled =  output_Left > 0 ? (output_Left - Motor_Min_Speed) / (Motor_Max_Speed - Motor_Min_Speed) : (output_Left - Motor_Max_Speed) / (Motor_Max_Speed - Motor_Min_Speed);
-           Double Output_Right_Scaled =  output_Left > 0 ?(output_Right - Motor_Min_Speed) / (Motor_Max_Speed - Motor_Min_Speed) : (output_Right - Motor_Max_Speed) / (Motor_Max_Speed - Motor_Min_Speed);
-           // Motorların hız kontrol sinyallerini hesapla
-           double left_motor_speed = Output_Left_Scaled;
-           double right_motor_speed = Output_Right_Scaled;
-
+           /*
+            * BU KOD TAM İSTENİLDİĞİ GİBİ ÇALIŞMADIĞI İÇİN YORUM SATIRINA ALINMIŞTIR ŞİMDİLİK İŞLEVİ SADECE İKİ MOTOR ARASINDAKİ GÜÇLERİNİN ORTALAMASINDA MOTORLARIN GÜÇLERİNİ EŞİTLEMEK
+            */
+          //PIDController pid_controller = new PIDController(PID_Coefficients.get(0),PID_Coefficients.get(1), PID_Coefficients.get(2)); 
+          // //Bu çıktı değerleri robotun hızını veriyor ve bu hız değeri 1 ile -1 arasında olmayabilir biz robota hız değeri değil güç değeri vereceğimiz için robotun hızı ne ise ona göre -1 ile 1 arasında bir değere ölçeklendirelim
+          // double output_Left = pid_controller.calculate(Desired_Speed, Current_Speed[0]);
+          // double output_Right = pid_controller.calculate(Desired_Speed, Current_Speed[1]);
+          // // Çıktı değerlerini ölçeklendir (-1 ile 1 arasında )
+          // Double Output_Left_Scaled =  output_Left > 0 ? (output_Left - Motor_Min_Speed) / (Motor_Max_Speed - Motor_Min_Speed) : (output_Left - Motor_Max_Speed) / (Motor_Max_Speed - Motor_Min_Speed);
+          // Double Output_Right_Scaled =  output_Left > 0 ?(output_Right - Motor_Min_Speed) / (Motor_Max_Speed - Motor_Min_Speed) : (output_Right - Motor_Max_Speed) / (Motor_Max_Speed - Motor_Min_Speed);
+          // Motorların hız kontrol sinyallerini hesapla
+          // double left_motor_speed = Desired_Speed;
+          // double right_motor_speed = Desired_Speed;
            // Motorların hız kontrol sinyallerini uygula
-           Power_Of_Each_Motors.set(0, left_motor_speed);
-           Power_Of_Each_Motors.set(1, right_motor_speed);
-
-           // Önceki değerleri kaydet
-            //Left değerleri kontrol edip kaydetme
-            // double error_Left = Desired_Speed - Current_Speed[0];
-            // previous_Left_error = error_Left;
-            // integral_sum_LEFT += error_Left *dt;
-            //  //Right değerleri kontrol edip kaydetme
-            // double error_Right = Desired_Speed - Current_Speed[1];
-            // previous_Right_error = error_Right;
-            // integral_sum_Right += error_Right *dt;
+           //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
+           robot_Status = RobotStatus.CONSTANTPOWER;
+           Power_Of_Each_Motors.set(0, Desired_Speed);
+           Power_Of_Each_Motors.set(1, Desired_Speed);
          }
         }
       public ArrayList<Double> PID_parametres(double k_Proportional, double k_Integral, double k_derivative)
@@ -269,22 +284,19 @@ public  class MotorControllerModule {
        // ROBOTUN  MOTORLARINDAKİ HIZINA GÖRE MOTORUN BULUNDUĞU HALİ KONTROL EDİYORUZ
       public void Robot_Status_Control()
       {
-        
-         if(Power_Of_Each_Motors.get(0) < 0.025d && Power_Of_Each_Motors.get(1) < 0.025d )
-         {
-            Power_Of_Each_Motors.set(0, 0d);
-            Power_Of_Each_Motors.set(1, 0d);
-           robot_Status = RobotStatus.IDLE;
-         }
-         else 
-         {
-             robot_Status = RobotStatus.DYNAMIC;
-         }
-         //ayrı olarak Robot dinamikse de bir yere gidiyor mu yoksa dönüyor mu bunun kontrolü
-         if(Math.abs(Power_Of_Each_Motors.get(0) - Power_Of_Each_Motors.get(1)) >= 0.2d)
-         {
-          robot_Status = RobotStatus.TURNING;
-         }
+        if( robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
+        {
+           if(Math.abs(Power_Of_Each_Motors.get(0)) < 0.025d && Math.abs(Power_Of_Each_Motors.get(1)) < 0.025d )
+          {
+             Power_Of_Each_Motors.set(0, 0d);
+             Power_Of_Each_Motors.set(1, 0d);
+            robot_Status = RobotStatus.IDLE;
+          }
+          else 
+          {
+              robot_Status = RobotStatus.DYNAMIC;
+          }
+        }
       }
        /*|Endregion :  MOTOR DURUM İZLEME |*/
  }

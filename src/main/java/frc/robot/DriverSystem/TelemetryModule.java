@@ -51,16 +51,15 @@ public  class TelemetryModule {
          SmartDashboard.putNumber("Right motor POWER ", Powers.get(1));
 
          // ROBOTUN VAROLAN HIZI
-          Double[] Speeds = _Motor_Controller.Sensor_Integration.Get_Motors_Speed();
-           SmartDashboard.putNumber("Left motor SPEED ", Speeds[0]);
-         SmartDashboard.putNumber("Right motor SPEED ", Speeds[1]);
+         //  Double[] Speeds = _Motor_Controller.Sensor_Integration.Get_Motors_Speed();
+         //   SmartDashboard.putNumber("Left motor SPEED ", Speeds[0]);
+         // SmartDashboard.putNumber("Right motor SPEED ", Speeds[1]);
          // Robotun anlık pozisyonunu al
          newPose = drivetrainSimulator.getPose();
          Pose_Sendable.setPose(newPose);
-          
-         // SendableRegistry.add(Pose_Sendable, "RobotPose");
-         
-         // SmartDashboard.putData("RobotPose", Pose_Sendable);
+         // ROBOTUN VAROLAN açısı
+         // Double Rotation = _Motor_Controller.Sensor_Integration.Get_Robot_Angle();
+         //  SmartDashboard.putNumber("Robot Rotation ", Rotation);
          
       }
       public void Defining_Variables_Smart_Dashboard()

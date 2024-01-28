@@ -40,7 +40,13 @@ public  class InputProcessingModule {
         {
              //Autonomous kısmı 
         }
-
+       if(Connection_Check(Left_Joystick,Right_Joystick))
+       {
+        //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
+         Joystick_Button_Processing();
+         //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
+         PID_Motor_Speed();
+       }
        }
 
       /*|Endregion : JOYSTICK GİRİŞ İŞLEMLERİ |*/
@@ -63,23 +69,24 @@ public  class InputProcessingModule {
           int[] Button_value_list = {Active_left_button, Active_right_button};
           return Button_value_list;
       }
+       //PID çağırma
+        public String PID_Motor_Speed(){
+          String pow_control_ipm = "";
+          if(Active_right_button==2){
+          pow_control_ipm="PID";
+          return pow_control_ipm;
+        }
+          else{
+          pow_control_ipm="Stability";
+          }
+          Motor_Controller_Module.Motor_Power_Control=pow_control_ipm;
+          return Motor_Controller_Module.Motor_Power_Control;
+      }
 
        /*| End Region : JOYSTICK DÜĞME İŞLEME| */
       /***************************/
 
-  //PID çağırma
-  public String PID(String pow_control_ipm){
-    if(Active_right_button==2){
-    pow_control_ipm="PID";
-    return pow_control_ipm;
-  }
-    else{
-    pow_control_ipm="Stability";
-    }
-    Motor_Controller_Module.Motor_Power_Control=pow_control_ipm;
-    return Motor_Controller_Module.Motor_Power_Control;
-}
-
+        
 
       /*| Region : HATA YÖNETİMİ VE GÜVENLİK KONTROL| */
        //Joysticklerden gelen sinyalleri işlemek için algoritma
@@ -94,5 +101,5 @@ public  class InputProcessingModule {
           boolean Is_Connected = Left.isConnected() && Right.isConnected();
           return Is_Connected;
       }
-      /*| Region : JOYSTICK GİRİŞ İŞLEMLERİ| */
+      /*| End Region : JOYSTICK GİRİŞ İŞLEMLERİ| */
 }

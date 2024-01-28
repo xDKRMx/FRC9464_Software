@@ -6,6 +6,11 @@
           "open": true
         }
       }
+    },
+    "RoboRIO": {
+      "RoboRIO Input": {
+        "open": true
+      }
     }
   },
   "NTProvider": {
@@ -15,9 +20,6 @@
     }
   },
   "NetworkTables Info": {
-    "Clients": {
-      "open": true
-    },
     "NT3@127.0.0.1:49464": {
       "open": true
     },
