@@ -49,10 +49,10 @@ public  class SensorIntegrationModule  {
    }
      //Encoder aracılığıyla Robotun pozisyonunu Çekme
     // Encoder sensörü
-    public  Double[] Get_Motors_Direction()
+    public  Double[] Get_Motors_Position()
     {
       // Sensör verilerini oku
-     
+     Motor_Match();
       Double left_motor_position  = leftEncoder.getPosition();
       Double right_motor_position  = rightEncoder.getPosition();
   

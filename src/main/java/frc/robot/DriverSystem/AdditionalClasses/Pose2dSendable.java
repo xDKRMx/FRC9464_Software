@@ -26,6 +26,9 @@ public class Pose2dSendable implements Sendable {
         SmartDashboard.putData("Field", field);
     }
 
+     public Pose2d GetPose() {
+       return pose;
+    }
     public void setPose(Pose2d pose) {
         this.pose = pose;
         // Field2d nesnesi ile robotun yeni konumunu güncelle

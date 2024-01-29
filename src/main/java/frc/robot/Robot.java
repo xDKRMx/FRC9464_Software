@@ -46,16 +46,26 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   }
   @Override
   public void robotInit() {
+
   }
 
   @Override
-  public void autonomousInit() {
+  public void robotPeriodic() {
+  //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
+  Telemetry_Class.Updating_Variables_Smart_Dashboard();
+  }
 
+
+  @Override
+  public void autonomousInit() {
+    //Robotun otonom kısmında ilk başta neyi hazırlaması gerektiğini gösterir
+    Motor_Controller_Class.Autonomous_Drive_Init();
   }
 
   @Override
   public void autonomousPeriodic() {
-
+    //Robotun otonom kısmında periyodik ve adım adım yapması gereken işlemleri yönlendidiği kısımdır
+    Motor_Controller_Class.Autonomous_Drive_Periodic();
   }
 
   @Override
@@ -64,7 +74,13 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void teleopPeriodic() {
-   
+      //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
+      Motor_Controller_Class.Robot_Status_Control();
+      Motor_Controller_Class.Follow_Periodic();
+      //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
+      Input_Processing_Class.Call_Driver_Periodic(true);
+      //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
+  Telemetry_Class.Updating_Variables_Smart_Dashboard();
   }
 
   @Override
@@ -73,12 +89,6 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void testPeriodic() {
-     //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
-      Motor_Controller_Class.Robot_Status_Control();
-      Motor_Controller_Class.Follow_Periodic();
-      //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
-      Input_Processing_Class.Call_Driver_Periodic(true);
-      //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
-  Telemetry_Class.Updating_Variables_Smart_Dashboard();
+  
   }
 }

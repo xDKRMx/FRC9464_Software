@@ -46,6 +46,8 @@ public  class InputProcessingModule {
          Joystick_Button_Processing();
          //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
          PID_Motor_Speed();
+         //Rotate kontrol
+         Rotate_Control();
        }
        }
 
@@ -87,11 +89,11 @@ public  class InputProcessingModule {
         public void Rotate_Control() {
           // Pozitif yön
           if(Active_left_button==1){
-          Motor_Controller_Module.Rotate_Robot(2,true);//turning speed değerini rastgele verdim değiştirilecek
+          Motor_Controller_Module.Rotate_Robot(1,true);//turning speed değerini rastgele verdim değiştirilecek
           }
           //Negatif yön
           else if(Active_right_button==3){
-            Motor_Controller_Module.Rotate_Robot(2, false);//turning speed değerini rastgele verdim değiştirilecek
+            Motor_Controller_Module.Rotate_Robot(1, false);//turning speed değerini rastgele verdim değiştirilecek
           }
           else{
             Motor_Controller_Module.Stop_Rotating();

@@ -26,7 +26,7 @@ public  class TelemetryModule {
       // Smart Dashboard'da görüntülenebilmeesi için örnek sanal robot örneği
       // private final DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(0.6); // 0.6 metre tekerlek mesafesi
       private DifferentialDrivetrainSim drivetrainSimulator;
-      public Pose2dSendable Pose_Sendable ;
+      public static Pose2dSendable Pose_Sendable ;
    Pose2d newPose;
      //Constructor
      public TelemetryModule(MotorControllerModule Motor_Controller)
@@ -57,6 +57,7 @@ public  class TelemetryModule {
          // Robotun anlık pozisyonunu al
          newPose = drivetrainSimulator.getPose();
          Pose_Sendable.setPose(newPose);
+          SmartDashboard.putData("RobotPose", Pose_Sendable);
          // ROBOTUN VAROLAN açısı
          // Double Rotation = _Motor_Controller.Sensor_Integration.Get_Robot_Angle();
          //  SmartDashboard.putNumber("Robot Rotation ", Rotation);
