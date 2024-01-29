@@ -84,7 +84,7 @@ public  class InputProcessingModule {
       }
 
         //Rotate (+ için sol 1, - için sağ 3)
-        public void Rotate_Control(String[] args) {
+        public void Rotate_Control() {
           // Pozitif yön
           if(Active_left_button==1){
           Motor_Controller_Module.Rotate_Robot(2,true);//turning speed değerini rastgele verdim değiştirilecek
