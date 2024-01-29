@@ -69,7 +69,7 @@ public  class InputProcessingModule {
           int[] Button_value_list = {Active_left_button, Active_right_button};
           return Button_value_list;
       }
-       //PID çağırma
+       //PID çağırma(sağ ikinci düğme)
         public String PID_Motor_Speed(){
           String pow_control_ipm = "";
           if(Active_right_button==2){
@@ -82,6 +82,23 @@ public  class InputProcessingModule {
           Motor_Controller_Module.Motor_Power_Control=pow_control_ipm;
           return Motor_Controller_Module.Motor_Power_Control;
       }
+
+        //Rotate (+ için sol 1, - için sağ 3)
+        public void Rotate_Control(String[] args) {
+          // Pozitif yön
+          if(Active_left_button==1){
+          Motor_Controller_Module.Rotate_Robot(2,true);//turning speed değerini rastgele verdim değiştirilecek
+          }
+          //Negatif yön
+          else if(Active_right_button==3){
+            Motor_Controller_Module.Rotate_Robot(2, false);//turning speed değerini rastgele verdim değiştirilecek
+          }
+          else{
+            Motor_Controller_Module.Stop_Rotating();
+          }
+        }
+
+
 
        /*| End Region : JOYSTICK DÜĞME İŞLEME| */
       /***************************/
