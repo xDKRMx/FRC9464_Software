@@ -10,10 +10,8 @@ public  class InputProcessingModule {
      //Bu class'deki fonksiyonların ve bir çok değişkeninin public olarak tanımlanması veya OOP(Object oriented) mantığı ile encapsulation olarak tanımlanmış olması kodun ilerleyişi açısından daha iyi olur.
      /************************************************** */ 
      //Joystick tanımlamaları
-     Joystick Left_Joystick = new Joystick(0);
-     Joystick Right_Joystick = new Joystick(1); 
-     private int Active_left_button = -1;
-     private int Active_right_button = -1;
+     Joystick Joystick = new Joystick(0);
+     private int Active_button = -1;
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
      /***************************/ 
@@ -21,6 +19,7 @@ public  class InputProcessingModule {
      public InputProcessingModule(MotorControllerModule M_C_Module)
      {
         Motor_Controller_Module = M_C_Module;
+
      }
       /***************************/
       /*|region : JOYSTICK GİRİŞ İŞLEMLERİ |*/
@@ -32,15 +31,15 @@ public  class InputProcessingModule {
         if(Is_It_Teleop) 
         {
          //Driver station üzerinden joysticklerin bağlı olup olmadığını kontrol ediyoruz eğer ki bağlı değilse keyboard üzerinden işlem yapmasını istiyoruz
-         if(Connection_Check(Left_Joystick,Right_Joystick)) Motor_Controller_Module.Teleop_Drive_Periodic(Right_Joystick, Left_Joystick);
-         else Motor_Controller_Module.Teleop_Drive_Periodic(null,null);
+         if(Connection_Check(Joystick)) Motor_Controller_Module.Teleop_Drive_Periodic(Joystick);
+         else Motor_Controller_Module.Teleop_Drive_Periodic(null);
 
         }
         else
         {
              //Autonomous kısmı 
         }
-       if(Connection_Check(Left_Joystick,Right_Joystick))
+       if(Connection_Check(Joystick))
        {
         //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
          Joystick_Button_Processing();
@@ -54,27 +53,20 @@ public  class InputProcessingModule {
       /*|Endregion : JOYSTICK GİRİŞ İŞLEMLERİ |*/
       /***************************/
       /*| Region : JOYSTICK DÜĞME İŞLEME| */
-      public int[] Joystick_Button_Processing()
+      public int Joystick_Button_Processing()
       {
           //Left JoystickControl
-          if(Left_Joystick.getRawButton(1))   Active_left_button = 1;
-          else if(Left_Joystick.getRawButton(2)) Active_left_button = 2;
-          else if(Left_Joystick.getRawButton(3)) Active_left_button = 3;
-          else if(Left_Joystick.getRawButton(4)) Active_left_button = 4;
-          else Active_left_button = -1;
-           //Right JoystickControl
-          if(Right_Joystick.getRawButton(1))   Active_right_button = 1;
-          else if(Right_Joystick.getRawButton(2)) Active_right_button = 2;
-          else if(Right_Joystick.getRawButton(3)) Active_right_button = 3;
-          else if(Right_Joystick.getRawButton(4)) Active_right_button = 4;
-          else Active_right_button = -1;
-          int[] Button_value_list = {Active_left_button, Active_right_button};
-          return Button_value_list;
+          if(Joystick.getRawButton(1))   Active_button = 1;
+          else if(Joystick.getRawButton(2)) Active_button = 2;
+          else if(Joystick.getRawButton(3)) Active_button = 3;
+          else if(Joystick.getRawButton(4)) Active_button = 4;
+          else Active_button = -1;
+          return Active_button;
       }
        //PID çağırma(sağ ikinci düğme)
         public String PID_Motor_Speed(){
           String pow_control_ipm = "";
-          if(Active_right_button==2){
+          if(Active_button==2){
           pow_control_ipm="PID";
           return pow_control_ipm;
         }
@@ -88,20 +80,17 @@ public  class InputProcessingModule {
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {
           // Pozitif yön
-          if(Active_left_button==1){
+          if(Active_button==1){
           Motor_Controller_Module.Rotate_Robot(1,true);//turning speed değerini rastgele verdim değiştirilecek
           }
           //Negatif yön
-          else if(Active_right_button==3){
+          else if(Active_button==3){
             Motor_Controller_Module.Rotate_Robot(1, false);//turning speed değerini rastgele verdim değiştirilecek
           }
           else{
             Motor_Controller_Module.Stop_Rotating();
           }
         }
-
-
-
        /*| End Region : JOYSTICK DÜĞME İŞLEME| */
       /***************************/
 
@@ -114,10 +103,10 @@ public  class InputProcessingModule {
 
       //Joysticklerin ve klavyenin bağlantısını kontrol etmek için algoritma
       //Kontrol metodu
-      public boolean Connection_Check(Joystick Left, Joystick Right)
+      public boolean Connection_Check(Joystick Joystick)
       {
         // Joysticklerin  bağlantısını kontrol etmek için algoritmanın fonksiyonunu burada çağırın
-          boolean Is_Connected = Left.isConnected() && Right.isConnected();
+          boolean Is_Connected = Joystick.isConnected() && Joystick.isConnected();
           return Is_Connected;
       }
       /*| End Region : JOYSTICK GİRİŞ İŞLEMLERİ| */

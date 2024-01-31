@@ -66,6 +66,8 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   public void autonomousPeriodic() {
     //Robotun otonom kısmında periyodik ve adım adım yapması gereken işlemleri yönlendidiği kısımdır
     Motor_Controller_Class.Autonomous_Drive_Periodic();
+    //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
+      Motor_Controller_Class.Robot_Status_Control();
   }
 
   @Override
@@ -74,9 +76,9 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void teleopPeriodic() {
+    Motor_Controller_Class.Follow_Periodic();
       //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
       Motor_Controller_Class.Robot_Status_Control();
-      Motor_Controller_Class.Follow_Periodic();
       //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
       Input_Processing_Class.Call_Driver_Periodic(true);
       //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi

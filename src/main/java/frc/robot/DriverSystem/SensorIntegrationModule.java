@@ -75,7 +75,7 @@ public  class SensorIntegrationModule  {
     {
        leftEncoder = Left_Leader.getEncoder();
        rightEncoder = Right_Leader.getEncoder();
-       
+       System.out.println(rightEncoder.getVelocity() + " SAĞ ");
     }
 
     //Gyro sensörü ile robotun yönün çekme

@@ -2,21 +2,19 @@ package frc.robot.DriverSystem;
 
 
 
-import com.revrobotics.CANSparkMax;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.CANSparkMax;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
-import frc.robot.DriverSystem.AdditionalClasses.*;
+import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
 
@@ -63,7 +61,8 @@ public  class MotorControllerModule {
      //OTONOM KISMI İÇİN TANIMLANMACAK DEĞİŞKENLER
      private Timer timer = new Timer();
      private boolean Is_Point_Setted = false;
-      private boolean reached_Setpoint = false;
+     private boolean reached_Setpoint = false;
+     private double Initial_Angle_Difference = 999d;
      Pose2d Setpoint ;
     
      double TargetAngle;
@@ -116,17 +115,18 @@ public  class MotorControllerModule {
      }
 
      //Periodic Metot //Teleop metotlar için
-      public void Teleop_Drive_Periodic(Joystick leftJoystick, Joystick rightJoystick)
+      public void Teleop_Drive_Periodic(Joystick joystick)
       {
+          Sensor_Integration.Motor_Match();
            //Burada bu joysticklerdeki axis'lerin itilme miktarını çektik
-           if(leftJoystick != null && rightJoystick != null)
+           if(joystick != null)
            {
             // Mevcut motorun güçlerini al
              double currentLeftInput = Power_Of_Each_Motors.get(0);
              double currentRightInput = Power_Of_Each_Motors.get(1);
              // Joystick inputlarını al veya varsayılan olarak 0 kabul et
-             double leftJoystickInput = leftJoystick.getY();
-             double rightJoystickInput =  rightJoystick.getY();
+             double leftJoystickInput = joystick.getRawAxis(1);
+             double rightJoystickInput =  joystick.getRawAxis(5);
              // Ramp algoritmasına göre Stabiliteyi sağlayacak bir ayarlama işlemi
              Double Absolute_Left_Motor_Power = rampMotorInput(currentLeftInput,leftJoystickInput,0.1f);
              Double Absolute_Right_Motor_Power = rampMotorInput(currentRightInput,rightJoystickInput,0.1f);
@@ -183,6 +183,7 @@ public  class MotorControllerModule {
              }
           }
            Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
+
        }
  
        //Bu kısımda robotun motor kontrol modülündeki algoritmalara göre otonom kısımda yapacağı işlemler vardır
@@ -194,9 +195,6 @@ public  class MotorControllerModule {
          timer.restart();
        }
 
-       
-       
-      
        public void Autonomous_Drive_Periodic() {
          //  saniye ileri gitme ve setpoint belirleme
            if (timer.get() < 2) {
@@ -204,12 +202,13 @@ public  class MotorControllerModule {
                Power_Of_Each_Motors.set(0, 0.5d);
                Power_Of_Each_Motors.set(1, 0.5d);
                 Main_Robot_Drive.tankDrive(Power_Of_Each_Motors.get(0), Power_Of_Each_Motors.get(1));
-           } else {
+           } 
+           else {
                // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz
                Pose2d Current_Position = TelemetryModule.Pose_Sendable.GetPose(); 
                
                Double Current_X_Position = Current_Position.getX();
-               Double Current_Y_Position = Current_Position.getX();
+               Double Current_Y_Position = Current_Position.getY();
                if(Is_Point_Setted == false)
                {
                   Setpoint = SetRandomPoint(Current_X_Position, Current_Y_Position);
@@ -220,32 +219,36 @@ public  class MotorControllerModule {
                double CurrentAngle =Current_Position.getRotation().getDegrees();
                while (CurrentAngle > 180) CurrentAngle -= 360;
                while (CurrentAngle < -180) CurrentAngle += 360;
-              //  System.out.println(CurrentAngle + " CURRENT ANGLE"); 
-              //   System.out.println(TargetAngle + " Target ANGLE"); 
-               // PID algoritmasını çalıştır ve düzeltmeyi hesapla
-              //  PID_Coefficients = PID_parametres(0.1,0.01,0.001);
-              //  PIDController pid_controller = new PIDController(PID_Coefficients.get(0),PID_Coefficients.get(1), PID_Coefficients.get(2)); 
-              //  double correction = pid_controller.calculate(CurrentAngle, TargetAngle);
-               if( Math.abs(CurrentAngle - TargetAngle ) > 3d && !reached_Setpoint)
+               if( Initial_Angle_Difference==999d)
                {
-                Rotate_Robot(1, (CurrentAngle - TargetAngle) > 0 ? false : true );
+                 Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle );
                }
-               else
-               {
+                double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference ) / 2 : (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference ) /4;
+              if( Math.abs(CurrentAngle - TargetAngle ) > 0.1d && !reached_Setpoint)
+              { 
+               Rotate_Robot(Turning_Speed, (CurrentAngle - TargetAngle) > 0 ? false : true );
+              }
+              else
+              {
                 Stop_Rotating();
-               }
-               if(robot_Status != RobotStatus.TURNING)
-               {
-                Autonomous_PIDControl(Current_Position,Setpoint);
-               }
+               
+              }
+              if(robot_Status != RobotStatus.TURNING)
+              {
+               Autonomous_Set_Robot(Initial_Angle_Difference,Current_Position,Setpoint);
+              }
+              //  System.out.println(CurrentAngle + " Current Angle");
+              //  System.out.println(TargetAngle + " Target Angle");
            }
           
        }
         private Pose2d SetRandomPoint(double X_position, double Y_Position)
         {
               Random Random = new Random();
-              double Set_Point_X_Position = X_position + 5 + (10 - 5) * Random.nextDouble(); // 5 ile 10 arasında rastgele bir çift sayı ekler
-              double Set_Point_Y_Position = Y_Position + 5 + (10 - 5) * Random.nextDouble();
+              boolean chooseNegativity = Random.nextBoolean();
+              double Set_Point_X_Position =chooseNegativity ? X_position + 5 + (10 - 5) * Random.nextDouble() : X_position - 5 - (10 - 5) * Random.nextDouble(); // 5 ile 10 arasında rastgele bir çift sayı ekler
+              chooseNegativity = Random.nextBoolean();
+              double Set_Point_Y_Position = chooseNegativity ? Y_Position + 5 + (10 - 5) * Random.nextDouble() : Y_Position - 5 - (10 - 5) * Random.nextDouble();
              Pose2d Setpoint = new Pose2d(Set_Point_X_Position, Set_Point_Y_Position, null);
              return Setpoint;
         }
@@ -255,27 +258,26 @@ public  class MotorControllerModule {
           // Setpoint'e göre hedef açıyı hesapla
           double targetAngle = Math.toDegrees(Math.atan2(SetPoint.getY() - CurrentPoint.getY(),
           SetPoint.getX() - CurrentPoint.getX()));
-          
           return targetAngle;
 
         }
 
        // PID kontrolü
-       private double kP = 0.1; // PID P parametresi
-       private void Autonomous_PIDControl(Pose2d CurrentPoint,Pose2d setPoint) {
+       private double Initial_Error = 999d; // PID P parametresi
+       private void Autonomous_Set_Robot(double Difference_Angle,Pose2d CurrentPoint,Pose2d setPoint) {
         double x_distance = setPoint.getX() - CurrentPoint.getX();
         double y_distance = setPoint.getY() - CurrentPoint.getY();
         double error = Math.sqrt(x_distance * x_distance + y_distance * y_distance);
-        double outputSpeed = kP * error; // Hız hesaplama
-           System.out.println(error + " CURRENT ANGLE"); 
-         if (Math.abs(error) < 0.6) { // Hedefe yaklaştığında dur
-            Power_Of_Each_Motors.set(0, Math.min(Power_Of_Each_Motors.get(0) > 0 ?Power_Of_Each_Motors.get(0) - 0.05 : Power_Of_Each_Motors.get(0) + 0.05, 0f));
-             Power_Of_Each_Motors.set(1, Math.min(Power_Of_Each_Motors.get(0) > 0 ?Power_Of_Each_Motors.get(1) - 0.05 : Power_Of_Each_Motors.get(1) + 0.05, 0f));
-             reached_Setpoint = true;
-         } else {
-             Power_Of_Each_Motors.set(0, outputSpeed);
-             Power_Of_Each_Motors.set(1, outputSpeed);
-         }
+        if(Initial_Error == 999d) Initial_Error = error;
+        double Power = ( Difference_Angle < -90d || Difference_Angle > 90d ) ?(error / Initial_Error) / 2 :  (error / Initial_Error) / 2 ; 
+         System.out.println(error + " Error");
+        if (Math.abs(error) < 1) { // Hedefe yaklaştığında dur
+           Power_Of_Each_Motors.set(0, 0d);
+            Power_Of_Each_Motors.set(1,0d);
+        } else {
+            Power_Of_Each_Motors.set(0, Power);
+            Power_Of_Each_Motors.set(1, Power);
+        }
        }
        //Ramping algoritması ile Klavye analogundaki ani hızlanmaları engellediğimiz gibi Joystick'de ani hızlanmaları engelleyip daha pürüzsüz ve akıcı bir hızlanma sağlıyor 
        //Periodic metot
@@ -308,6 +310,7 @@ public  class MotorControllerModule {
         public void Stop_Rotating()
         {
           robot_Status = RobotStatus.DYNAMIC;
+           
         }
 
     /*|Endregion : CAN MOTOR KONTROL  |*/
