@@ -10,11 +10,13 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
 import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
+import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
 
@@ -62,6 +64,7 @@ public  class MotorControllerModule {
      private Timer timer = new Timer();
      private boolean Is_Point_Setted = false;
      private boolean reached_Setpoint = false;
+     private boolean reached_Angle = false;
      private double Initial_Angle_Difference = 999d;
      Pose2d Setpoint ;
     
@@ -213,7 +216,7 @@ public  class MotorControllerModule {
                {
                   Setpoint = SetRandomPoint(Current_X_Position, Current_Y_Position);
                   TargetAngle = CalculateAngle(Current_Position,Setpoint);
-                 Is_Point_Setted = true;
+                  Is_Point_Setted = true;
                }
                
                double CurrentAngle =Current_Position.getRotation().getDegrees();
@@ -231,14 +234,15 @@ public  class MotorControllerModule {
               else
               {
                 Stop_Rotating();
-               
+                if(reached_Angle == false) reached_Angle = true;
               }
-              if(robot_Status != RobotStatus.TURNING)
+              if(reached_Angle)
               {
                Autonomous_Set_Robot(Initial_Angle_Difference,Current_Position,Setpoint);
               }
               //  System.out.println(CurrentAngle + " Current Angle");
               //  System.out.println(TargetAngle + " Target Angle");
+              Pose2dSendable.field2.setRobotPose(Setpoint);
            }
           
        }
@@ -249,7 +253,12 @@ public  class MotorControllerModule {
               double Set_Point_X_Position =chooseNegativity ? X_position + 5 + (10 - 5) * Random.nextDouble() : X_position - 5 - (10 - 5) * Random.nextDouble(); // 5 ile 10 arasında rastgele bir çift sayı ekler
               chooseNegativity = Random.nextBoolean();
               double Set_Point_Y_Position = chooseNegativity ? Y_Position + 5 + (10 - 5) * Random.nextDouble() : Y_Position - 5 - (10 - 5) * Random.nextDouble();
-             Pose2d Setpoint = new Pose2d(Set_Point_X_Position, Set_Point_Y_Position, null);
+              /**/
+                double targetAngle = Math.toDegrees(Math.atan2(Set_Point_Y_Position - Y_Position,
+          Set_Point_X_Position - X_position));
+               /**/
+              Rotation2d Default_Rotation = new Rotation2d(Math.toRadians(targetAngle));
+             Pose2d Setpoint = new Pose2d(Set_Point_X_Position, Set_Point_Y_Position, Default_Rotation);
              return Setpoint;
         }
         public double CalculateAngle(Pose2d CurrentPoint, Pose2d SetPoint )
@@ -262,15 +271,16 @@ public  class MotorControllerModule {
 
         }
 
-       // PID kontrolü
-       private double Initial_Error = 999d; // PID P parametresi
+       //Otonom Motor Drive Kodu
+       private double Initial_Error = 999d; 
        private void Autonomous_Set_Robot(double Difference_Angle,Pose2d CurrentPoint,Pose2d setPoint) {
         double x_distance = setPoint.getX() - CurrentPoint.getX();
         double y_distance = setPoint.getY() - CurrentPoint.getY();
+        
         double error = Math.sqrt(x_distance * x_distance + y_distance * y_distance);
+        
         if(Initial_Error == 999d) Initial_Error = error;
         double Power = ( Difference_Angle < -90d || Difference_Angle > 90d ) ?(error / Initial_Error) / 2 :  (error / Initial_Error) / 2 ; 
-         System.out.println(error + " Error");
         if (Math.abs(error) < 1) { // Hedefe yaklaştığında dur
            Power_Of_Each_Motors.set(0, 0d);
             Power_Of_Each_Motors.set(1,0d);

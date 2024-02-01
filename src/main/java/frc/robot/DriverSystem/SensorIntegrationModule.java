@@ -2,8 +2,11 @@ package frc.robot.DriverSystem;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
+import edu.wpi.first.wpilibj.SPI;
+import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+
+
 public  class SensorIntegrationModule  {
       //Bu class Motor Controller ve Input Processing Modüllerindeki işlemlerin devamı niteliğindedir
       //Not: bu Class'i geliştirmeye başladığımız zaman bir daha MotorControllerModule veya InputProcessingModule'lerine geri dönmeyeceğiz gibi algılanmasın. Burada çakışan kodlar olursa her türlü iyileştirilmeler yapılacaktır
@@ -21,14 +24,15 @@ public  class SensorIntegrationModule  {
      //Encoder Tanımalaması
       private RelativeEncoder leftEncoder;
      private  RelativeEncoder rightEncoder;
-     // Gyro tanımlaması
-     private ADXRS450_Gyro gyro = new ADXRS450_Gyro();
+     // navX tanımlaması
+     private AHRS ahrs;
       // IMU tanımlaması
       /***************** */
      //Constructor
      public SensorIntegrationModule(MotorControllerModule _Motor_Controller)
      {
       Motor_Controller = _Motor_Controller;
+      navX_MXP_Init();
      }
 
      /****************/
@@ -78,17 +82,23 @@ public  class SensorIntegrationModule  {
        System.out.println(rightEncoder.getVelocity() + " SAĞ ");
     }
 
-    //Gyro sensörü ile robotun yönün çekme
-    //Gyro Sensörü
+    //navX-MXP sensörü ile robotun yönün çekme
+    //navX-MXP Sensörü
     // Dönme açısını ölçme metodu
-  public double Get_Robot_Angle()
-  {
-    gyro.calibrate();
-    // Gyro sensörü kullanarak robotun dönüş açısını ölç
-    double angle = gyro.getAngle();
+    void navX_MXP_Init()
+    {
+      ahrs = new AHRS(SPI.Port.kMXP); 
+    }
+    public Double[] Three_Axis_Rotation()
+    {
+      double yaw = ahrs.getYaw(); // Robotun yönünü (yaw) al
+      double pitch = ahrs.getPitch(); // Robotun eğimini (pitch) al
+      double roll = ahrs.getRoll(); // Robotun yanal eğimini (roll) al
+      Double[] Axis_Rotation = {yaw, pitch, roll};
+      return Axis_Rotation;
+    }
 
-    return angle;
-  }
+
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
 
 
