@@ -4,7 +4,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.SPI;
 import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 
 
 public  class SensorIntegrationModule  {
@@ -100,9 +99,10 @@ public  class SensorIntegrationModule  {
 
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
-
+     /***************************/
 
    /*| Region : SENSORLERLE TEMEL İŞLEMLERİ KOMUTUNU VERME|*/
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİ KOMUTUNU VERME|*/
+    /***************************/
 }

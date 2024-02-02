@@ -52,6 +52,7 @@ public  class InputProcessingModule {
 
       /*|Endregion : JOYSTICK GİRİŞ İŞLEMLERİ |*/
       /***************************/
+
       /*| Region : JOYSTICK DÜĞME İŞLEME| */
       public int Joystick_Button_Processing()
       {
@@ -110,4 +111,5 @@ public  class InputProcessingModule {
           return Is_Connected;
       }
       /*| End Region : JOYSTICK GİRİŞ İŞLEMLERİ| */
+      /***************************/
 }

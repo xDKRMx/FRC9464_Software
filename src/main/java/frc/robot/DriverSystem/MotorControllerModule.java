@@ -105,11 +105,14 @@ public  class MotorControllerModule {
       double Current_time = timer.get();
       return Current_time;
      }
-      /* | End Region : MOTOR VERİELERİ ÇEKME  |*/
+      /* | End Region : MOTOR VERİLERİ ÇEKME  |*/
+
 
      /***************************/
      /*|region : CAN MOTOR KONTROL  |*/
 
+
+     /*|Title : TELOP MOTOR KISMI  |*/
      // Periodic Metot // Hem Teleoperation hem de Autonomous için kullanılabilir 
      public void Follow_Periodic()
      {
@@ -185,10 +188,14 @@ public  class MotorControllerModule {
              Motor_Velocity_Equation((Power_Of_Each_Motors.get(0) + Power_Of_Each_Motors.get(1)) / 2, Current_Speed);
              }
           }
+          
            Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
 
        }
- 
+       /*|END Title : TELOP MOTOR KISMI  |*/
+
+       /*| Title : OTONOM MOTOR KISMI  |*/
+
        //Bu kısımda robotun motor kontrol modülündeki algoritmalara göre otonom kısımda yapacağı işlemler vardır
        // Init metot // Otonom kısım için
        public void Autonomous_Drive_Init()
@@ -208,55 +215,71 @@ public  class MotorControllerModule {
            } 
            else {
                // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz
+               //İlk başta robotumuzun default POSE2D class'ini kullanarak posizyon bilgilerini çekiyoruz
                Pose2d Current_Position = TelemetryModule.Pose_Sendable.GetPose(); 
-               
                Double Current_X_Position = Current_Position.getX();
                Double Current_Y_Position = Current_Position.getY();
+               // sürekli yeni bir Setpoint noktası oluşturmaması için bir kereliğine mahsus robotun en az 5 en fazla 10 metre ilerisinde vye gerisinde olacak şekilde hem ,X hem Y ekseninde, bir random setpoint oluşturuyoruz
                if(Is_Point_Setted == false)
                {
                   Setpoint = SetRandomPoint(Current_X_Position, Current_Y_Position);
-                  TargetAngle = CalculateAngle(Current_Position,Setpoint);
                   Is_Point_Setted = true;
                }
-               
+               //robotun normal bulunduğu konum ile setpoint noktası arasındaki doğrunun eğimine göre (tana) target angle değerini hesaplıyoruz
+               TargetAngle = CalculateAngle(Current_Position,Setpoint);
+               //Robotun şu an Gyro benzeri bir sensörler entegre edilmediği yönünü çekmekte zorlanıyoruz sanal ortamda
+               //alternatif olarak da Pose2D'de kullanılan rotation2D kullanıyoruz
+               //Rotation2D ve Pose2D maç sırasında bizim hesaplayabileceğimiz veri yapılarına sahip değil biz bunları sadece simülasyon sırasında test etmek için kullanabiliriz
+               //gerçek robotta testleri koordinat sistemini sensörlerden Encoder sensörünü kullanarak 
+               //Yön olarak NavX-MXP sensörünü kullanarak
+               //random Setpoint noktası oluşturmak yerine de Limelight 3 ile görüntü işleme sistemi sayesinde en yakındaki AMP veya Hopörlörü bir setpoint noktası olarak atayacağız
+               //robotun eğer ki sahip olduğu bir Intake sistemi varsa yerdeki notayı setpoint olarak algılayacak
+               //Ardından da buradaki kendi konumu ile gideceği setpoint arasındaki mesafeyi ve buna bağlı olarak error mesafesini UltraSonic sensörle sağlayacak
                double CurrentAngle =Current_Position.getRotation().getDegrees();
+               //robotun o andaki mevcut açısı  -180 180 derece dışındaysa esas ölçüsü alınır
                while (CurrentAngle > 180) CurrentAngle -= 360;
                while (CurrentAngle < -180) CurrentAngle += 360;
+               //Başlangıçta sahip olduğu yön yani açı değeri ile setpoint ile Current point yani robotun konumu arasındaki açının farkı hesaplanır
                if( Initial_Angle_Difference==999d)
                {
                  Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle );
                }
-                double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference ) / 2 : (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference ) /4;
-              if( Math.abs(CurrentAngle - TargetAngle ) > 0.1d && !reached_Setpoint)
-              { 
+               //Lineer interpolasyon sistemi ile robotun yönünü target angle'a yaklaştırmak maksadıyla bir dönme hızı veriliyor.
+               //Lineer İnterpolasyon : İKİ sayı arasındaki farkı yine farklı iki sayı arasındaki değere indirgemek. Mesela 40 - 0 arasındaki sayıları 1 ile 0'a indirmek gibi 40 ise sayı değeri 1,  0 ise  0 , 20 ise 0.5 gibi. 
+                double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) ;
+              if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !reached_Setpoint && !reached_Angle)
+              {
+                //arardaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
                Rotate_Robot(Turning_Speed, (CurrentAngle - TargetAngle) > 0 ? false : true );
               }
               else
               {
+                //koşul sağlandığında robotu döndürmeyi bırak ve robotun motorlarına bu sefer istenilen Setpoint noktasına gitmesi için güç ver
                 Stop_Rotating();
                 if(reached_Angle == false) reached_Angle = true;
               }
               if(reached_Angle)
               {
-               Autonomous_Set_Robot(Initial_Angle_Difference,Current_Position,Setpoint);
+                //Robotun motorlarına  güç ver
+                 Autonomous_Set_Robot(TargetAngle,Current_Position,Setpoint);
               }
-              //  System.out.println(CurrentAngle + " Current Angle");
-              //  System.out.println(TargetAngle + " Target Angle");
               Pose2dSendable.field2.setRobotPose(Setpoint);
            }
-          
        }
         private Pose2d SetRandomPoint(double X_position, double Y_Position)
         {
+          //Rnadom Setpoint noktaıs oluşturma algoritması 
               Random Random = new Random();
               boolean chooseNegativity = Random.nextBoolean();
               double Set_Point_X_Position =chooseNegativity ? X_position + 5 + (10 - 5) * Random.nextDouble() : X_position - 5 - (10 - 5) * Random.nextDouble(); // 5 ile 10 arasında rastgele bir çift sayı ekler
               chooseNegativity = Random.nextBoolean();
               double Set_Point_Y_Position = chooseNegativity ? Y_Position + 5 + (10 - 5) * Random.nextDouble() : Y_Position - 5 - (10 - 5) * Random.nextDouble();
               /**/
+              //Oluşturlan değerler sonucundaki nokta ile robotun varolan noktası arasındaki geometrik hesaplarla oluşturulmuş eğim yani açı değeri
                 double targetAngle = Math.toDegrees(Math.atan2(Set_Point_Y_Position - Y_Position,
-          Set_Point_X_Position - X_position));
+                Set_Point_X_Position - X_position));
                /**/
+               // o açı değerini radyan cinsine çevirip Pose2D class'ine yollama
               Rotation2d Default_Rotation = new Rotation2d(Math.toRadians(targetAngle));
              Pose2d Setpoint = new Pose2d(Set_Point_X_Position, Set_Point_Y_Position, Default_Rotation);
              return Setpoint;
@@ -268,27 +291,31 @@ public  class MotorControllerModule {
           double targetAngle = Math.toDegrees(Math.atan2(SetPoint.getY() - CurrentPoint.getY(),
           SetPoint.getX() - CurrentPoint.getX()));
           return targetAngle;
-
         }
 
        //Otonom Motor Drive Kodu
+       //Başlangıçdaki erro yani iki nokta arasındaki fark absürt bir değer girilerek bir kereye mahsus ilk fark hesaplanmak istenmiştir
        private double Initial_Error = 999d; 
        private void Autonomous_Set_Robot(double Difference_Angle,Pose2d CurrentPoint,Pose2d setPoint) {
+        //SetPoint ile CurrentPoint arasındaki mesafeyi yani error'ü hesaplamak (Dik üçgen yöntemi ile hesaplanmaktadır)
         double x_distance = setPoint.getX() - CurrentPoint.getX();
         double y_distance = setPoint.getY() - CurrentPoint.getY();
-        
         double error = Math.sqrt(x_distance * x_distance + y_distance * y_distance);
         
         if(Initial_Error == 999d) Initial_Error = error;
-        double Power = ( Difference_Angle < -90d || Difference_Angle > 90d ) ?(error / Initial_Error) / 2 :  (error / Initial_Error) / 2 ; 
-        if (Math.abs(error) < 1) { // Hedefe yaklaştığında dur
+        //Roobtun motorlarına verilecek gücün yine Lineer Interpolasyon ile eror mesafesine bağlı olarak verilmesi
+        double Power = ( Difference_Angle < -90d || Difference_Angle > 90d ) ?(error / Initial_Error)  :  (error / Initial_Error) ; 
+        if (Math.abs(error) < 0.1d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt durma komutu yazılmış
            Power_Of_Each_Motors.set(0, 0d);
             Power_Of_Each_Motors.set(1,0d);
         } else {
+          //Hedef ile arasındaki error mesafesi hala eşik değer üstündeyse robotun motorlarına power oranında güç ver 
             Power_Of_Each_Motors.set(0, Power);
             Power_Of_Each_Motors.set(1, Power);
         }
        }
+     /*| END Title : OTONOM MOTOR KISMI  |*/  
+
        //Ramping algoritması ile Klavye analogundaki ani hızlanmaları engellediğimiz gibi Joystick'de ani hızlanmaları engelleyip daha pürüzsüz ve akıcı bir hızlanma sağlıyor 
        //Periodic metot
         private double rampMotorInput(double currentpower, double joystickInput, double RAMP_RATE) {
@@ -307,7 +334,7 @@ public  class MotorControllerModule {
          return Math.max(-1.0, Math.min(1.0, currentpower));
         }
 
-        //Robotun İstenilen yönde dönmesini Sağlayan Turning metodu bu metod ile biz motora istediğimiz gibi saat yönünde veya saat yönünün tersine bir rotasyon işlemi uygulayabileceğiz (ROBOT HEM STATİKKEN HEM DE HAREKET HALİNDEYKEN)
+        //Robotun istenilen yönde dönmesini Sağlayan Turning metodu bu metod ile biz motora istediğimiz gibi saat yönünde veya saat yönünün tersine bir rotasyon işlemi uygulayabileceğiz (ROBOT HEM STATİKKEN HEM DE HAREKET HALİNDEYKEN)
         //Periodic kontrol metodu 
         // Hem Teleop hem de Autonomous için kullanılabilir
         public void Rotate_Robot(double Turning_Speed,Boolean Positive_Rotation)
@@ -423,6 +450,7 @@ public  class MotorControllerModule {
         }
       }
        /*|Endregion :  MOTOR DURUM İZLEME |*/
+       /***************************/
  }
       
 

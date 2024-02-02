@@ -34,7 +34,7 @@ public  class TelemetryModule {
         _Motor_Controller  = Motor_Controller;
         Defining_Variables_Smart_Dashboard();
      }
-
+       /***************************/
      /*|region : Smart Dashboard İşlemleri|*/
       public void Updating_Variables_Smart_Dashboard()
       {
@@ -89,4 +89,5 @@ public  class TelemetryModule {
       }
       
      /*|EndRegion : Smart Dashboard İşlemleri|*/
+     /***************************/
 }
