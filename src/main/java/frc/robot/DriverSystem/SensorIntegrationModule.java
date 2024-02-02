@@ -90,8 +90,7 @@ public  class SensorIntegrationModule  {
     }
     public double Get_Rotation_Angle 
     {double rotation_angle = ahrs.getAngle();}
-    
-    double magneticHeading = getCompassHeading();
+    double magneticHeading = getCompassHeading()
 
 
     public Double[] Three_Axis_Rotation()
@@ -103,7 +102,25 @@ public  class SensorIntegrationModule  {
       return Axis_Rotation;
       
       
-    } 
+    }
+    //gyro ivmeyi G biriminde veriyor o yüzden m/s^2 ye çevirmek için 9.8 ile çarpıyoruz
+    public Float[] Three_Axis_Acceleration()
+    {
+      float accelX = ahrs.getWorldLinearAccelX() * 9,80665;
+      float accelY = ahrs.getWorldLinearAccelY() * 9,80665;
+      float accelZ = ahrs.getWorldLinearAccelZ() * 9,80665;
+      float[] Axis_Acceleration = {accelX, accelY, accelZ};
+      return Axis_Acceleration;
+    }
+    //navx velocity i m/s olarak veriyor (navx sayfası bu method deneysel diyor o yüzden düzgün çalışmayabilir.)
+    public Float[] Three_Axis_Acceleration()
+    {
+      float veloX = ahrs.getVelocityX();
+      float veloY = ahrs.getVelocityY();
+      float veloz = ahrs.getVelocityZ();
+      float[] Axis_Velocity = {veloX, veloY, veloZ};
+      return Axis_Velocity;
+    }
     
 
     
