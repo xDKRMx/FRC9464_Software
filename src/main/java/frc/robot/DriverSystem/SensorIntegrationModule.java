@@ -86,7 +86,14 @@ public  class SensorIntegrationModule  {
     void navX_MXP_Init()
     {
       ahrs = new AHRS(SPI.Port.kMXP); 
+
     }
+    public double Get_Rotation_Angle 
+    {double rotation_angle = ahrs.getAngle();}
+    
+    double magneticHeading = getCompassHeading();
+
+
     public Double[] Three_Axis_Rotation()
     {
       double yaw = ahrs.getYaw(); // Robotun yönünü (yaw) al
@@ -94,7 +101,12 @@ public  class SensorIntegrationModule  {
       double roll = ahrs.getRoll(); // Robotun yanal eğimini (roll) al
       Double[] Axis_Rotation = {yaw, pitch, roll};
       return Axis_Rotation;
-    }
+      
+      
+    } 
+    
+
+    
 
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
