@@ -108,11 +108,11 @@ public  class KeyboardAnalog  extends JFrame{
 
 
     private double increaseSpeed(double currentSpeed) {
-        return Math.min(currentSpeed + 0.05, 1f); // Maksimum hızı 1 olarak sınırla
+        return Math.min(currentSpeed + 0.05, 0.5d); // Maksimum hızı 1 olarak sınırla
     }
     
     private double decreaseSpeed(double currentSpeed) {
-        return Math.max(currentSpeed - 0.05, -1f); // Minimum hızı -1 olarak sınırla
+        return Math.max(currentSpeed - 0.05, -0.5d); // Minimum hızı -1 olarak sınırla
     }
      public double Motor_Speed_Key_Analog(String Left_or_Right)
      {

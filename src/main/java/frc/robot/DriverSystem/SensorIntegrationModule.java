@@ -78,7 +78,6 @@ public  class SensorIntegrationModule  {
     {
        leftEncoder = Left_Leader.getEncoder();
        rightEncoder = Right_Leader.getEncoder();
-       System.out.println(rightEncoder.getVelocity() + " SAĞ ");
     }
 
     //navX-MXP sensörü ile robotun yönün çekme
