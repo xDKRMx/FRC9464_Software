@@ -125,6 +125,22 @@ public  class SensorIntegrationModule  {
       Float[] Axis_Velocity = {veloX, veloY, veloZ};
       return Axis_Velocity;
     }
+    public float get_Magnetic_Heading(){
+      return ahrs.getCompassHeading();
+    }
+    public double get_Yaw_Rotation_Rate(){
+      return ahrs.getRate();
+    }
+    public boolean is_Robot_Moving(){
+      return ahrs.isMoving();
+    }
+    public boolean is_Robot_Rotating(){
+      return ahrs.isRotating();
+    }
+    public void reset_Gyro_Yaw(){
+      ahrs.reset();
+    }
+    
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
      /***************************/
