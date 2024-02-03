@@ -133,8 +133,8 @@ public  class MotorControllerModule {
                double currentLeftInput = Power_Of_Each_Motors.get(0);
                double currentRightInput = Power_Of_Each_Motors.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
-               double leftJoystickInput = -joystick.getRawAxis(1);
-               double rightJoystickInput =  -joystick.getRawAxis(5);
+               double leftJoystickInput = -getJoyInput(1);
+               double rightJoystickInput = -getJoyInput(5);
                //Eşik değer kontrolü
                if(Math.abs(leftJoystickInput) < 0.07)leftJoystickInput = 0;
                if(Math.abs(rightJoystickInput) < 0.07)rightJoystickInput = 0;
