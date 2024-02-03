@@ -1,6 +1,7 @@
 package frc.robot.DriverSystem;
-
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
 
 //Simülasyonu bilgisayarda yapabilmek için klavye analog ataması
 public  class InputProcessingModule {
@@ -19,7 +20,7 @@ public  class InputProcessingModule {
      public InputProcessingModule(MotorControllerModule M_C_Module)
      {
         Motor_Controller_Module = M_C_Module;
-
+        
      }
       /***************************/
       /*|region : JOYSTICK GİRİŞ İŞLEMLERİ |*/
@@ -33,21 +34,17 @@ public  class InputProcessingModule {
          //Driver station üzerinden joysticklerin bağlı olup olmadığını kontrol ediyoruz eğer ki bağlı değilse keyboard üzerinden işlem yapmasını istiyoruz
          if(Connection_Check(Joystick)) Motor_Controller_Module.Teleop_Drive_Periodic(Joystick);
          else Motor_Controller_Module.Teleop_Drive_Periodic(null);
-
+             if(Connection_Check(Joystick))
+            {
+             //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
+              Joystick_Button_Processing();
+              //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
+              PID_Motor_Speed();
+              //Rotate kontrol
+              Rotate_Control();
+            }
         }
-        else
-        {
-             //Autonomous kısmı 
-        }
-       if(Connection_Check(Joystick))
-       {
-        //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
-         Joystick_Button_Processing();
-         //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
-         PID_Motor_Speed();
-         //Rotate kontrol
-         Rotate_Control();
-       }
+      
        }
 
       /*|Endregion : JOYSTICK GİRİŞ İŞLEMLERİ |*/
@@ -61,16 +58,20 @@ public  class InputProcessingModule {
           else if(Joystick.getRawButton(2)) Active_button = 2;
           else if(Joystick.getRawButton(3)) Active_button = 3;
           else if(Joystick.getRawButton(4)) Active_button = 4;
+          else if(Joystick.getRawButton(5)) Active_button = 5;
+          else if(Joystick.getRawButton(6)) Active_button = 6;
+          else if(Joystick.getRawButton(7)) Active_button = 7;
+          else if(Joystick.getRawButton(8)) Active_button = 8;
           else Active_button = -1;
           return Active_button;
       }
        //PID çağırma(sağ ikinci düğme)
         public String PID_Motor_Speed(){
           String pow_control_ipm = "";
-          if(Active_button==2){
+          if(Active_button==1){
           pow_control_ipm="PID";
-          return pow_control_ipm;
-        }
+          Motor_Controller_Module.robot_Status = RobotStatus.CONSTANTPOWER;
+          }
           else{
           pow_control_ipm="Stability";
           }
@@ -81,11 +82,11 @@ public  class InputProcessingModule {
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {
           // Pozitif yön
-          if(Active_button==1){
+          if(Active_button==5){
           Motor_Controller_Module.Rotate_Robot(1,true);//turning speed değerini rastgele verdim değiştirilecek
           }
           //Negatif yön
-          else if(Active_button==3){
+          else if(Active_button==6){
             Motor_Controller_Module.Rotate_Robot(1, false);//turning speed değerini rastgele verdim değiştirilecek
           }
           else{
@@ -107,7 +108,8 @@ public  class InputProcessingModule {
       public boolean Connection_Check(Joystick Joystick)
       {
         // Joysticklerin  bağlantısını kontrol etmek için algoritmanın fonksiyonunu burada çağırın
-          boolean Is_Connected = Joystick.isConnected() && Joystick.isConnected();
+          boolean Is_Connected = Joystick.isConnected();
+          SmartDashboard.putBoolean("Joystick Connected", Is_Connected);
           return Is_Connected;
       }
       /*| End Region : JOYSTICK GİRİŞ İŞLEMLERİ| */

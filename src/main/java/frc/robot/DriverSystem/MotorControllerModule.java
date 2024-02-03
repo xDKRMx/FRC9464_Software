@@ -123,21 +123,27 @@ public  class MotorControllerModule {
      //Periodic Metot //Teleop metotlar için
       public void Teleop_Drive_Periodic(Joystick joystick)
       {
-          Sensor_Integration.Motor_Match();
            //Burada bu joysticklerdeki axis'lerin itilme miktarını çektik
            if(joystick != null)
            {
-            // Mevcut motorun güçlerini al
-             double currentLeftInput = Power_Of_Each_Motors.get(0);
-             double currentRightInput = Power_Of_Each_Motors.get(1);
-             // Joystick inputlarını al veya varsayılan olarak 0 kabul et
-             double leftJoystickInput = joystick.getRawAxis(1);
-             double rightJoystickInput =  joystick.getRawAxis(5);
-             // Ramp algoritmasına göre Stabiliteyi sağlayacak bir ayarlama işlemi
-             Double Absolute_Left_Motor_Power = rampMotorInput(currentLeftInput,leftJoystickInput,0.1f);
-             Double Absolute_Right_Motor_Power = rampMotorInput(currentRightInput,rightJoystickInput,0.1f);
-            Power_Of_Each_Motors.set(0, Absolute_Left_Motor_Power);
-            Power_Of_Each_Motors.set(1,Absolute_Right_Motor_Power );
+             if(robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
+             {
+              
+                 // Mevcut motorun güçlerini al
+               double currentLeftInput = Power_Of_Each_Motors.get(0);
+               double currentRightInput = Power_Of_Each_Motors.get(1);
+               // Joystick inputlarını al veya varsayılan olarak 0 kabul et
+               double leftJoystickInput = -joystick.getRawAxis(1);
+               double rightJoystickInput =  -joystick.getRawAxis(5);
+               //Eşik değer kontrolü
+               if(Math.abs(leftJoystickInput) < 0.07)leftJoystickInput = 0;
+               if(Math.abs(rightJoystickInput) < 0.07)rightJoystickInput = 0;
+               // Ramp algoritmasına göre Stabiliteyi sağlayacak bir ayarlama işlemi
+               Double Absolute_Left_Motor_Power = rampMotorInput(currentLeftInput,leftJoystickInput,0.1f);
+               Double Absolute_Right_Motor_Power = rampMotorInput(currentRightInput,rightJoystickInput,0.1f);
+                Power_Of_Each_Motors.set(0, Absolute_Left_Motor_Power);
+                Power_Of_Each_Motors.set(1,Absolute_Right_Motor_Power );
+             }
            }
            else
            {
@@ -188,7 +194,7 @@ public  class MotorControllerModule {
              Motor_Velocity_Equation((Power_Of_Each_Motors.get(0) + Power_Of_Each_Motors.get(1)) / 2, Current_Speed);
              }
           }
-          
+          //System.out.println(Motor_Power_Control + " " + robot_Status);
            Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
 
        }
@@ -399,6 +405,7 @@ public  class MotorControllerModule {
        //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
          void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
         {
+          
             // Robotun durumunu kontrol et
            if(robot_Status != RobotStatus.IDLE)
            {
@@ -419,6 +426,7 @@ public  class MotorControllerModule {
           // double right_motor_speed = Desired_Speed;
            // Motorların hız kontrol sinyallerini uygula
            //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
+
            robot_Status = RobotStatus.CONSTANTPOWER;
            Power_Of_Each_Motors.set(0, Desired_Speed);
            Power_Of_Each_Motors.set(1, Desired_Speed);
@@ -445,6 +453,7 @@ public  class MotorControllerModule {
           }
           else 
           {
+           
               robot_Status = RobotStatus.DYNAMIC;
           }
         }

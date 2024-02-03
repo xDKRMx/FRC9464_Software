@@ -86,45 +86,45 @@ public  class SensorIntegrationModule  {
     void navX_MXP_Init()
     {
       ahrs = new AHRS(SPI.Port.kMXP); 
-
+       ahrs.zeroYaw();
+      
     }
-    public double Get_Rotation_Angle 
-    {double rotation_angle = ahrs.getAngle();}
-    double magneticHeading = getCompassHeading()
-
 
     public Double[] Three_Axis_Rotation()
     {
+      //3 eksenli rotasyon hesaplama
       double yaw = ahrs.getYaw(); // Robotun yönünü (yaw) al
       double pitch = ahrs.getPitch(); // Robotun eğimini (pitch) al
       double roll = ahrs.getRoll(); // Robotun yanal eğimini (roll) al
       Double[] Axis_Rotation = {yaw, pitch, roll};
       return Axis_Rotation;
-      
-      
+
+    }
+     
+    // Spesifik olarak Yaw ekseninde rotasyonu almayı sağlar
+    public double Get_Rotation_Angle()
+    {
+    double rotation_angle = ahrs.getAngle();
+    return rotation_angle;
     }
     //gyro ivmeyi G biriminde veriyor o yüzden m/s^2 ye çevirmek için 9.8 ile çarpıyoruz
     public Float[] Three_Axis_Acceleration()
     {
-      float accelX = ahrs.getWorldLinearAccelX() * 9,80665;
-      float accelY = ahrs.getWorldLinearAccelY() * 9,80665;
-      float accelZ = ahrs.getWorldLinearAccelZ() * 9,80665;
-      float[] Axis_Acceleration = {accelX, accelY, accelZ};
+      Float accelX = ahrs.getWorldLinearAccelX() * 9.80665f;
+      Float accelY = ahrs.getWorldLinearAccelY() * 9.80665f;
+      Float accelZ = ahrs.getWorldLinearAccelZ() * 9.80665f;
+      Float[] Axis_Acceleration = {accelX, accelY, accelZ};
       return Axis_Acceleration;
     }
     //navx velocity i m/s olarak veriyor (navx sayfası bu method deneysel diyor o yüzden düzgün çalışmayabilir.)
-    public Float[] Three_Axis_Acceleration()
+    public Float[] Three_Axis_Velocity()
     {
-      float veloX = ahrs.getVelocityX();
-      float veloY = ahrs.getVelocityY();
-      float veloz = ahrs.getVelocityZ();
-      float[] Axis_Velocity = {veloX, veloY, veloZ};
+      Float veloX = ahrs.getVelocityX();
+      Float veloY = ahrs.getVelocityY();
+      Float veloZ = ahrs.getVelocityZ();
+      Float[] Axis_Velocity = {veloX, veloY, veloZ};
       return Axis_Velocity;
     }
-    
-
-    
-
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
      /***************************/
