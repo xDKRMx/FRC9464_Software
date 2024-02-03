@@ -16,11 +16,7 @@ public  class InputProcessingModule {
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
      /***************************/ 
-     double joystickDeadzone = 0.05;
-     public double getJoyInput(int portNum){
-      double raw = joystick.getRawAxis(portNum);
-      return Math.abs(raw) < joystickDeadzone ? 0.0 : raw;
-     } 
+
       // Constructor
      public InputProcessingModule(MotorControllerModule M_C_Module)
      {

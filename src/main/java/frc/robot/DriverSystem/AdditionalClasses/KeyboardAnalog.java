@@ -80,8 +80,6 @@ public  class KeyboardAnalog  extends JFrame{
                   Power_amount_RIGHT = 0;
              }
         }
-    
-     System.out.println("DFE");
           //************************//
       // KLAVYEDE DİĞER TUŞLARA BASILDIĞI ZAMAN GERÇEKLEŞECEKLER
       if(pressedKeys.contains(KeyEvent.VK_D))

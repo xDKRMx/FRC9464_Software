@@ -133,11 +133,11 @@ public  class MotorControllerModule {
                double currentLeftInput = Power_Of_Each_Motors.get(0);
                double currentRightInput = Power_Of_Each_Motors.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
-               double leftJoystickInput = -getJoyInput(1);
-               double rightJoystickInput = -getJoyInput(5);
+               double leftJoystickInput = -joystick.getRawAxis(1);;
+               double rightJoystickInput = -joystick.getRawAxis(5);;
                //Eşik değer kontrolü
-               if(Math.abs(leftJoystickInput) < 0.07)leftJoystickInput = 0;
-               if(Math.abs(rightJoystickInput) < 0.07)rightJoystickInput = 0;
+               if(Math.abs(leftJoystickInput) < 0.05)leftJoystickInput = 0;
+               if(Math.abs(rightJoystickInput) < 0.05)rightJoystickInput = 0;
                // Ramp algoritmasına göre Stabiliteyi sağlayacak bir ayarlama işlemi
                Double Absolute_Left_Motor_Power = rampMotorInput(currentLeftInput,leftJoystickInput,0.1f);
                Double Absolute_Right_Motor_Power = rampMotorInput(currentRightInput,rightJoystickInput,0.1f);
