@@ -59,9 +59,7 @@ public  class TelemetryModule {
          Pose_Sendable.setPose(newPose);
           SmartDashboard.putData("RobotPose", Pose_Sendable);
          // ROBOTUN VAROLAN açısı
-         // Double Rotation = _Motor_Controller.Sensor_Integration.Get_Robot_Angle();
-         //  SmartDashboard.putNumber("Robot Rotation ", Rotation);
-         
+         _Motor_Controller.Sensor_Integration.Get_Rotation_Angle();
       }
       public void Defining_Variables_Smart_Dashboard()
       {
@@ -73,7 +71,7 @@ public  class TelemetryModule {
              Pose2d initialPose = new Pose2d(0, 0, new Rotation2d());
              Pose_Sendable = new Pose2dSendable(initialPose,0.6d,0.6d,1d,0.6d);
              SmartDashboard.putData("RobotPose", Pose_Sendable);
-             
+            _Motor_Controller.Sensor_Integration.Motor_Match();
             final double KvLinear = 2.0; // volt seg^-1 başına metre (sürüş hızı için tipik bir FRC robot değeri)
             final double KaLinear = 0.8; // volt seg^-2 başına metre (sürüş ivmesi için tipik bir FRC robot değeri)
             final double KvAngular = 1.5; // volt seg^-1 başına radyan (dönüş hızı için tipik bir FRC robot değeri)

@@ -1,15 +1,27 @@
 {
   "HALProvider": {
     "Other Devices": {
-      "SPARK MAX [0]": {
+      "navX-Sensor[0]": {
         "header": {
           "open": true
         }
       }
     },
     "RoboRIO": {
+      "3.3V Rail": {
+        "open": true
+      },
+      "5V Rail": {
+        "open": true
+      },
+      "6V Rail": {
+        "open": true
+      },
       "RoboRIO Input": {
         "open": true
+      },
+      "window": {
+        "visible": true
       }
     }
   },
