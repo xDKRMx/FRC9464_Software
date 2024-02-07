@@ -1,9 +1,10 @@
 package frc.robot.DriverSystem;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Ultrasonic;
+import edu.wpi.first.wpilibj.RobotController;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -27,6 +28,7 @@ public  class SensorIntegrationModule  {
      private  RelativeEncoder rightEncoder;
      // navX tanımlaması
      private AHRS ahrs;
+     private AnalogInput ultrasonic;
       /*Robotun yer değiştirmesini hesaplama kullanılacak değişkenler */
       //başlangıç noktaları
       private double Default_X_Position = 0f;
@@ -41,13 +43,15 @@ public  class SensorIntegrationModule  {
       private double Current_Y_Position = 0f;
        private double Current_Rotation = 0d;
        //UltraSonic sensör tanımlaması
-       Ultrasonic Ultra_Sonic = new Ultrasonic(1,2);
+
       /******************/
      //Constructor
      public SensorIntegrationModule(MotorControllerModule _Motor_Controller)
      {
       Motor_Controller = _Motor_Controller;
       navX_MXP_Init();
+      ultrasonic_Init();
+      
       
      }
 
@@ -147,6 +151,9 @@ public  class SensorIntegrationModule  {
     public void reset_Gyro_Yaw(){
       ahrs.reset();
     }
+    void ultrasonic_Init(){
+      ultrasonic = new AnalogInput(AnalogInput.getChannel());
+    }
     public Double[] Three_Axis_Rotation()
     {
       //3 eksenli rotasyon hesaplama
@@ -195,13 +202,13 @@ public  class SensorIntegrationModule  {
     }
     //Ultra Sonic Sensör
     public Double Robot_Get_Distance()
-    {
-      //Ultra sonik sensör ile biz robota en yakın objenin robota olan uzaklığını ses sondaları kullanarak ölçüyoruz
-      //Ultrasonik sensörlerde biz önümüzdeki objenin ne olduğunu ne kadar uzunlukta olduğunu vs. ölçemeyiz sadece robota olan uzaklığını ölçebiliriz
-      // Ultrasonik sensörden mesafe okuma (metre cinsinden)
-      double Object_distance = Ultra_Sonic.getRangeInches() * 0.0254; // İnç cinsinden alınan mesafeyi metre cinsine çevirme
-       return Object_distance;
-
+    {  
+      double raw_Value = ultrasonic.getValue();
+      //bu kısmın çoğunu şu siteden aldım https://maxbotix.com/blogs/blog/firstrobotics
+      //voltage_scale_factor bizim voltajda herhangi bir değişiklik olması durumunda bile doğru veri almamızı sağlar(0 = 0V, 4095 = 5V değerleri arasında).
+      //cm cinsinden birim
+      double voltage_scale_factor = 5/RobotController.getVoltage5V();
+      return raw_Value * voltage_scale_factor * 0.125;
     }
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
      /***************************/
