@@ -193,7 +193,16 @@ public  class SensorIntegrationModule  {
     public boolean is_Robot_Rotating(){
       return ahrs.isRotating();
     }
-    
+    //Ultra Sonic Sensör
+    public Double Robot_Get_Distance()
+    {
+      //Ultra sonik sensör ile biz robota en yakın objenin robota olan uzaklığını ses sondaları kullanarak ölçüyoruz
+      //Ultrasonik sensörlerde biz önümüzdeki objenin ne olduğunu ne kadar uzunlukta olduğunu vs. ölçemeyiz sadece robota olan uzaklığını ölçebiliriz
+      // Ultrasonik sensörden mesafe okuma (metre cinsinden)
+      double Object_distance = Ultra_Sonic.getRangeInches() * 0.0254; // İnç cinsinden alınan mesafeyi metre cinsine çevirme
+       return Object_distance;
+
+    }
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
      /***************************/
 
