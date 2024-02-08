@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -42,6 +43,7 @@ public  class SensorIntegrationModule  {
       private double Current_X_Position = 0f;
       private double Current_Y_Position = 0f;
        private double Current_Rotation = 0d;
+       private Timer timer;
        //UltraSonic sensör tanımlaması
 
       /******************/
@@ -152,7 +154,7 @@ public  class SensorIntegrationModule  {
       ahrs.reset();
     }
     void ultrasonic_Init(){
-      ultrasonic = new AnalogInput(AnalogInput.getChannel());
+      ultrasonic = new AnalogInput(0);
     }
     public Double[] Three_Axis_Rotation()
     {
@@ -209,6 +211,24 @@ public  class SensorIntegrationModule  {
       //cm cinsinden birim
       double voltage_scale_factor = 5/RobotController.getVoltage5V();
       return raw_Value * voltage_scale_factor * 0.125;
+    }
+    //m/s cinsinden closure rate
+    public Double Robot_Get_Closure_Rate(){
+      double dist1 = Robot_Get_Distance();
+      //ÖNEMLİ buraya 100 ms gecikme lazım
+      double dist2 = Robot_Get_Distance();
+      if(dist1 - dist2 < 50){
+        return (dist1 - dist2)/10;
+      }
+      else{
+        dist1 = Robot_Get_Distance();
+        //Önemli yine burada 100 ms gecikme eklemek lazım
+        dist2 = Robot_Get_Distance();
+        return (dist1 - dist2)/10;
+      }
+//bu method şu anda çok iyi çalışmıyor hala çalışma altında
+      
+      
     }
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
      /***************************/
