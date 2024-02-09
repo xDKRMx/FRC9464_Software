@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "SensorIntegrationModule",
+      "request": "launch",
+      "mainClass": "frc.robot.DriverSystem.SensorIntegrationModule",
+      "projectName": "FRC9464_Software"
+    },
+    {
+      "type": "java",
       "name": "Main",
       "request": "launch",
       "mainClass": "frc.robot.Main",

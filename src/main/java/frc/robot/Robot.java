@@ -59,14 +59,12 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
 
   @Override
   public void autonomousInit() {
-    MultiThread thread1 = new MultiThread();
     //Robotun otonom kısmında ilk başta neyi hazırlaması gerektiğini gösterir
     Motor_Controller_Class.Autonomous_Drive_Init();
   }
 
   @Override
   public void autonomousPeriodic() {
-    thread1.start();
     //Robotun otonom kısmında periyodik ve adım adım yapması gereken işlemleri yönlendidiği kısımdır
     Motor_Controller_Class.Autonomous_Drive_Periodic();
     //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin

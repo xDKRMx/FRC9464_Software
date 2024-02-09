@@ -1,11 +1,12 @@
 package frc.robot.DriverSystem;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.AnalogInput;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Timer;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -13,20 +14,6 @@ import com.kauailabs.navx.frc.AHRS;
 //MultiThread object = new MultiThread();
 //object.start();
       //ile çağrılabilir.
-public class MultiThread extends Thread{
-  public void run()
-    double dist1 = Robot_Get_Distance();
-    Thread.sleep(100);
-    double dist2 Robot_Get_Distance();
-    double closure_rate;
-    if(dist1 - dist2 < 60){
-      closure_rate = (dist1 - dist2)/10;
-    }
-    else{
-      closure_rate = 0;
-    }
-  
-}
 
 public  class SensorIntegrationModule  {
       //Bu class Motor Controller ve Input Processing Modüllerindeki işlemlerin devamı niteliğindedir
@@ -48,19 +35,21 @@ public  class SensorIntegrationModule  {
      // navX tanımlaması
      private AHRS ahrs;
      private AnalogInput ultrasonic;
-      /*Robotun yer değiştirmesini hesaplama kullanılacak değişkenler */
+      /*Robotun yer değiştirmesini hesaplama kullanılacak değişkenler || POSE2D CİNSİNDEN (ODOMETRİ SİSTEMİ)*/ 
+      //POSE 2D DEĞERLERİ
+      private Pose2d Current_Robot_Pose;
       //başlangıç noktaları
       private double Default_X_Position = 0f;
       private double Default_Y_Position = 0f;
-      private double Default_Rotation = 0d;
+      private Rotation2d Default_Rotation = null;
       //En son bulunduğu noktalar
       private double Last_X_Position = 999f;
       private double Last_Y_Position = 999f;
-      private double Last_Rotation = 999d;
+      private Rotation2d Last_Rotation = null;
       //Mevcut bulunduğu noktalar
       private double Current_X_Position = 0f;
       private double Current_Y_Position = 0f;
-       private double Current_Rotation = 0d;
+      private Rotation2d Current_Rotation = null;
        //UltraSonic sensör tanımlaması
 
       /******************/
@@ -70,8 +59,6 @@ public  class SensorIntegrationModule  {
       Motor_Controller = _Motor_Controller;
       navX_MXP_Init();
       ultrasonic_Init();
-     }
-
      }
      /****************/
 
@@ -120,40 +107,44 @@ public  class SensorIntegrationModule  {
        rightEncoder = Right_Leader.getEncoder();
     }
     /*|Title : Robotun X ve Y eksenlerindeki Yer değiştirmesini hesaplama|*/
-    public Double[] Robot_Init_Position()
+    public Pose2d Robot_Init_Position()
     {
       Default_X_Position =ahrs.getDisplacementX();
       Default_Y_Position =ahrs.getDisplacementY();
-      Double[] Virtual_Pose2D = {Default_X_Position,Default_Y_Position};
-      return Virtual_Pose2D;
+      Default_Rotation =  new Rotation2d(Math.toRadians(Get_Rotation_Angle()));
+      Pose2d Default_Pose = new Pose2d(Current_X_Position, Current_Y_Position, Default_Rotation);
+      return Default_Pose;
     }
-    public Double[] Robot_Current_Position()
+    public Pose2d Robot_Current_Position()
     {
        Current_X_Position =ahrs.getDisplacementX();
        Current_Y_Position =ahrs.getDisplacementY();
-       Double[] Virtual_Pose2D = {Current_X_Position,Current_Y_Position};
-      return Virtual_Pose2D;
+       Current_Rotation =  new Rotation2d(Math.toRadians(Get_Rotation_Angle()));
+       Current_Robot_Pose = new Pose2d(Current_X_Position, Current_Y_Position, Current_Rotation);
+      return Current_Robot_Pose;
     }
-    Double[] Position_Difference()
+    public Pose2d Position_Difference()
     {
-      if(Last_X_Position == 999f && Last_Y_Position == 999f && Last_Rotation == 999f)
+      if(Last_X_Position == 999f && Last_Y_Position == 999f && Last_Rotation == null)
       {
         Last_X_Position = Current_X_Position;
         Last_Y_Position = Current_Y_Position;
         Last_Rotation = Current_Rotation;
         Double DifferenceX = Current_X_Position - Default_X_Position;
         Double DifferenceY = Current_Y_Position - Default_Y_Position;
-        Double DifferenceRotation = Current_Rotation - Default_Rotation;
-        Double[] Differences = {DifferenceX,DifferenceY,DifferenceRotation };
-        return Differences;
+        double differenceRadians = Current_Rotation.getDegrees() - Default_Rotation.getDegrees();
+        Rotation2d  Difference_Rotation =new Rotation2d( Math.toRadians(differenceRadians));
+        Pose2d Difference_Pose = new Pose2d(DifferenceX, DifferenceY,Difference_Rotation);
+        return Difference_Pose;
       }
       else
       {
         Double DifferenceX = Current_X_Position - Last_X_Position;
         Double DifferenceY = Current_Y_Position - Last_Y_Position;
-        Double DifferenceRotation = Current_Rotation - Last_Rotation;
-        Double[] Differences = {DifferenceX,DifferenceY,DifferenceRotation };
-        return Differences;
+        double differenceRadians = Current_Rotation.getDegrees() - Last_Rotation.getDegrees();
+        Rotation2d  Difference_Rotation =new Rotation2d( Math.toRadians(differenceRadians));
+         Pose2d Difference_Pose = new Pose2d(DifferenceX, DifferenceY,Difference_Rotation);
+        return Difference_Pose;
       }
 
     }
@@ -168,9 +159,6 @@ public  class SensorIntegrationModule  {
     }
     public void reset_Gyro_Yaw(){
       ahrs.reset();
-    }
-    void ultrasonic_Init(){
-      ultrasonic = new AnalogInput(0);
     }
     public Double[] Three_Axis_Rotation()
     {
@@ -219,6 +207,10 @@ public  class SensorIntegrationModule  {
       return ahrs.isRotating();
     }
     //Ultra Sonic Sensör
+    void ultrasonic_Init(){
+      ultrasonic = new AnalogInput(0);
+      Closer_rate();
+    }
     public Double Robot_Get_Distance()
     {  
       double raw_Value = ultrasonic.getValue();
@@ -228,10 +220,45 @@ public  class SensorIntegrationModule  {
       double voltage_scale_factor = 5/RobotController.getVoltage5V();
       return raw_Value * voltage_scale_factor * 0.125;   
     }
+
+    public void Closer_rate() {
+      Thread thread = new Thread(new Runnable() {
+          @Override
+          public void run() {
+              while (!Thread.currentThread().isInterrupted()) {
+                  try {
+                      double dist1 = Robot_Get_Distance();
+                      Thread.sleep(100); // 100 milisaniye beklet
+                      double dist2 = Robot_Get_Distance();
+                      double closure_rate;
+                      if (dist1 - dist2 < 60) {
+                          closure_rate = (dist1 - dist2) / 10;
+                      } else {
+                          closure_rate = 0;
+                      }
+  
+                      // Kapanma hızını yazdır veya başka bir şekilde kullan
+                      System.out.println("Kapanma hızı: " + closure_rate);
+  
+                      // Burada 100 milisaniye bekleme zaten yapıldığı için ekstra bir Thread.sleep(100) çağrısına gerek yok
+                  } catch (InterruptedException e) {
+                      System.out.println("Thread kesintiye uğradı, döngü sona eriyor.");
+                      Thread.currentThread().interrupt(); // Kesinti durumunu koru
+                      break; // Döngüyü sonlandır
+                  }
+              }
+          }
+      });
+  
+      thread.start(); // Thread'i başlat
+  }
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
-     /***************************/
+   /***************************/
 
    /*| Region : SENSORLERLE TEMEL İŞLEMLERİ KOMUTUNU VERME|*/
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİ KOMUTUNU VERME|*/
     /***************************/
+
+  }
+  

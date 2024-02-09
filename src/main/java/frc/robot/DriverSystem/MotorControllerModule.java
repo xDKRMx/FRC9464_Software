@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-import org.w3c.dom.views.DocumentView;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -71,11 +69,11 @@ public  class MotorControllerModule {
      double TargetAngle;
      double CurrentAngle;
      //ODOMETRİ HESABI İLE
-     Pose2d Current_Point_Pose2D;
-     Pose2d Setpoint_Pose2D;
+     Pose2d Current_Point;
+     Pose2d Setpoint;
      //Senör verilerine göre
-     Double[]  Current_Point_Sensor = new Double[2];
-     Double[] Setpoint_Sensor = new Double[2];
+    //  Double[]  Current_Point_Sensor = new Double[2];
+    //  Double[] Setpoint_Sensor = new Double[2];
      //Robotun manevra işlemine girmesi için limit değişkenler
      private double Limit_Distance = 2d;
      private double limit_Velocity = 5d;
@@ -232,27 +230,21 @@ public  class MotorControllerModule {
            else {
                // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz
                //İlk başta robotumuzun default POSE2D class'ini kullanarak posizyon bilgilerini çekiyoruz
-               Current_Point_Pose2D = TelemetryModule.Pose_Sendable.GetPose(); 
-                Double Current_X_Position = Current_Point_Pose2D.getX();
-                Double Current_Y_Position = Current_Point_Pose2D.getY();
-               /*ROBOTUN SENSÖRLERİ ENTEGRE EDİLİNCE PROJEYE VERİLER SANAL POSE2D SINIFI ÜZERİNDEN DEĞİL DİREKT ROBOTUN SENSÖRÜNDEN ÇEKİLECEK */
-               /*SENSÖR VERİ */
-              //* */    Current_Point_Sensor = Sensor_Integration.Robot_Current_Position();
-              //* */  Double Current_X_Position = Current_Point_Sensor[0];
-              //* */  Double Current_Y_Position = Current_Point_Sensor[1];
+               Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
+                /*ROBOTUN SENSÖRLERİ ENTEGRE EDİLİNCE PROJEYE VERİLER SANAL POSE2D SINIFI ÜZERİNDEN DEĞİL DİREKT ROBOTUN SENSÖRÜNDEN ÇEKİLECEK */
+                /*SENSÖR VERİ */
+                // Current_Point = Sensor_Integration.Robot_Current_Position();
+                Double Current_X_Position = Current_Point.getX();
+                Double Current_Y_Position = Current_Point.getY();
+              
                // sürekli yeni bir Setpoint noktası oluşturmaması için bir kereliğine mahsus robotun en az 5 en fazla 10 metre ilerisinde vye gerisinde olacak şekilde hem ,X hem Y ekseninde, bir random setpoint oluşturuyoruz
                if(Is_Point_Setted == false)
                {
-                  Setpoint_Pose2D = SetRandomPoint_Pose2D(Current_X_Position, Current_Y_Position);
-                 /*SENSÖR VERİ */
-                //* */  Setpoint_Sensor = SetRandomPoint_Sensor(Current_X_Position,Current_Y_Position );
+                  Setpoint = SetRandomPoint_Pose2D(Current_X_Position, Current_Y_Position);
                  Is_Point_Setted = true;
                }
                //robotun normal bulunduğu konum ile setpoint noktası arasındaki doğrunun eğimine göre (tana) target angle değerini hesaplıyoruz
-               TargetAngle = CalculateAngle_Pose2D(Current_Point_Pose2D,Setpoint_Pose2D);
-
-               /*SENSÖR VERİ */
-              //* */   TargetAngle = CalculateAngle_Sensor(Current_Point_Sensor,Setpoint_Sensor);
+               TargetAngle = CalculateAngle_Pose2D(Current_Point,Setpoint);
 
                //Robotun şu an Gyro benzeri bir sensörler entegre edilmediği yönünü çekmekte zorlanıyoruz sanal ortamda
                //alternatif olarak da Pose2D'de kullanılan rotation2D kullanıyoruz
@@ -263,13 +255,10 @@ public  class MotorControllerModule {
                //robotun eğer ki sahip olduğu bir Intake sistemi varsa yerdeki notayı setpoint olarak algılayacak
                //Ardından da buradaki kendi konumu ile gideceği setpoint arasındaki mesafeyi ve buna bağlı olarak error mesafesini UltraSonic sensörle sağlayacak
 
-               CurrentAngle =Current_Point_Pose2D.getRotation().getDegrees();
+               CurrentAngle =Current_Point.getRotation().getDegrees();
                //robotun o andaki mevcut açısı  -180 180 derece dışındaysa esas ölçüsü alınır
                while (CurrentAngle > 180) CurrentAngle -= 360;
                while (CurrentAngle < -180) CurrentAngle += 360;
-
-               /*SENSÖR VERİ */
-              //* */ double CurrentAngle = Sensor_Integration.Get_Rotation_Angle();
 
                //Başlangıçta sahip olduğu yön yani açı değeri ile setpoint ile Current point yani robotun konumu arasındaki açının farkı hesaplanır
                if( Initial_Angle_Difference==999d)
@@ -299,7 +288,7 @@ public  class MotorControllerModule {
 
               }
               
-              Pose2dSendable.field2.setRobotPose(Setpoint_Pose2D);
+              Pose2dSendable.field2.setRobotPose(Setpoint);
            }
            Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
        }
@@ -322,24 +311,6 @@ public  class MotorControllerModule {
              return Setpoint;
         }
 
-        /*SENSÖR Random Point */
-        private Double[] SetRandomPoint_Sensor(double X_position, double Y_Position)
-        {
-              Random Random = new Random();
-              boolean chooseNegativity = Random.nextBoolean();
-              double Set_Point_X_Position =chooseNegativity ? X_position + 5 + (10 - 5) * Random.nextDouble() : X_position - 5 - (10 - 5) * Random.nextDouble(); // 5 ile 10 arasında rastgele bir çift sayı ekler
-              chooseNegativity = Random.nextBoolean();
-              double Set_Point_Y_Position = chooseNegativity ? Y_Position + 5 + (10 - 5) * Random.nextDouble() : Y_Position - 5 - (10 - 5) * Random.nextDouble();
-              /**/
-              //Oluşturlan değerler sonucundaki nokta ile robotun varolan noktası arasındaki geometrik hesaplarla oluşturulmuş eğim yani açı değeri
-                double targetAngle = Math.toDegrees(Math.atan2(Set_Point_Y_Position - Y_Position,
-                Set_Point_X_Position - X_position));
-              /**/
-               // o açı değerini radyan cinsine çevirip Pose2D class'ine yollama
-               Double[]  Setpoint = {Set_Point_X_Position,Set_Point_Y_Position,targetAngle };
-               return Setpoint;
-        }
-
         public double CalculateAngle_Pose2D(Pose2d CurrentPoint, Pose2d SetPoint )
         { 
           //burada iki nokta arasındaki açı farkını trigonometri ile hesaplıyoruz
@@ -348,28 +319,13 @@ public  class MotorControllerModule {
           SetPoint.getX() - CurrentPoint.getX()));
           return targetAngle;
         }
-
-        /*SENSÖR Calculate Angle */
-         public double CalculateAngle_Sensor(Double[] CurrentPoint, Double[] SetPoint )
-        { 
-          //burada iki nokta arasındaki açı farkını trigonometri ile hesaplıyoruz
-          // Setpoint'e göre hedef açıyı hesapla
-          double targetAngle = Math.toDegrees(Math.atan2(SetPoint[1] - CurrentPoint[1],
-          SetPoint[0] - CurrentPoint[0]));
-          return targetAngle;
-        }
-
        //Otonom Motor Drive Kodu
        //Başlangıçdaki erro yani iki nokta arasındaki fark absürt bir değer girilerek bir kereye mahsus ilk fark hesaplanmak istenmiştir
        private double Initial_Error = 999d; 
        private void Autonomous_Set_Robot() {
         //SetPoint ile CurrentPoint arasındaki mesafeyi yani error'ü hesaplamak (Dik üçgen yöntemi ile hesaplanmaktadır)
-        double x_distance = Setpoint_Pose2D.getX() - Current_Point_Pose2D.getX();
-        double y_distance = Setpoint_Pose2D.getY() - Current_Point_Pose2D.getY();
-         /*SENSÖR VERİ */
-       //* */ double x_distance = Setpoint_Sensor[0] - Current_Point_Sensor[0];
-       //* */ double y_distance = Setpoint_Sensor[1] - Current_Point_Sensor[1];
-
+        double x_distance = Setpoint.getX() - Current_Point.getX();
+        double y_distance = Setpoint.getY() - Current_Point.getY();
         double error = Math.sqrt(x_distance * x_distance + y_distance * y_distance);
         
         if(Initial_Error == 999d) Initial_Error = error;
@@ -382,15 +338,21 @@ public  class MotorControllerModule {
             // Power_Of_Each_Motors.set(1,0d);
             /************** */
             //robotun motorlara güç vermeyi durdurması yerine manevra harketine girmesi için yapılan test kodu 
-            Robot_manoeuvre();
+            
         } else {
+          //ROBOTUN HEDEFLENEN NOKTAYA YAKLAŞIRKEN ÖNÜNE ÇIKAN HERHANGİ BİR ENGEL ÇIKMASI HALİNDE MANEVRA KONTOLÜ YAPMASI
+          //Ultrasonic sensörü aracılığıyla yapılan bu kontrolde eğer ki robotun önüne limit mesafeden daha kısa mesafede bir obje çıkarsa ve o anda robotun hızı limit hızdan fazlaysa robot kendisini döndürerek bir nevi engelden manevra sistemi ile kaçınacak
+          //Eğer ki önüne herhangi bir obje çıkmazsa çıksa bile artık hızı yavaşlamışsa boş yere manevra yapmayacak
+          Robot_manoeuvre();
           //Hedef ile arasındaki error mesafesi hala eşik değer üstündeyse robotun motorlarına power oranında güç ver 
+          if(manoeuvre)
+          {
             Power_Of_Each_Motors.set(0, Power);
             Power_Of_Each_Motors.set(1, Power);
+          }
         }
        }
      /*| END Title : OTONOM MOTOR KISMI  |*/  
-
        //Ramping algoritması ile Klavye analogundaki ani hızlanmaları engellediğimiz gibi Joystick'de ani hızlanmaları engelleyip daha pürüzsüz ve akıcı bir hızlanma sağlıyor 
        //Periodic metot
         private double rampMotorInput(double currentpower, double joystickInput, double RAMP_RATE) {
@@ -424,7 +386,6 @@ public  class MotorControllerModule {
           robot_Status = RobotStatus.DYNAMIC;
            
         }
-       
       //Periodic metot
       //Otonom Kısmı için
       private double Initial_Angle = 999d;
@@ -432,34 +393,34 @@ public  class MotorControllerModule {
       {
         //Robotun çarpabileceği en yakındaki objenin robota uzaklığı ve o andaki hızı ölçülüyor
         
-        /*SENSÖR VERİ */
-       //  double Current_Distance = Sensor_Integration.Robot_Get_Distance();
-       //  Double[] Current_Velocities = Sensor_Integration.Get_Motors_Speed();
-         //hem sağ hem de sol motorun anlık hızlarının ortalaması alınarak o anki hızın limit hızdan küçük veya büyük oldupu karşılaştırılıyor
-       //    Double Current_Velocity = (Current_Velocities[0] + Current_Velocities[1]) / 2;
-        // if(Current_Distance < Limit_Distance &&  Current_Velocity > limit_Velocity)
-        //  {
-        //      // Eğer ki limit meesafeden daha az bir mesafe kalmışsa ve robotun hızı da limit hızdan fazla ise robotun hızını lineer interpolasyon ile azaltıp bir eşik değerinden sonraki değerlede robotu döndrüyoruz 
-        //       double Power = Current_Distance / Limit_Distance; 
-        //       if (Math.abs(Power) < 0.2d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt robotun manevra yapabilmesi için robotu döndürüyoruz
-        //          manoeuvre = true;
-        //          Rotate_Robot(1d,true); 
-        //       } else {
-        //         //Hedef ile arasındaki error mesafesi hala robotun manevra yani dönme işlemini yapacak değerin üstündeyse robota manevra işlemine girene kadar motora verilen gücü yavaş yavaş azalt 
-        //           Power_Of_Each_Motors.set(0, Power);
-        //           Power_Of_Each_Motors.set(1, Power);
-        //       }
-        //  }
-        //  else
-        //  {
-        //   //eğer ki robotun Robotun çarpabileceği en yakındaki objenin robota uzaklığı limit uzaklıktan küçük olup aynı zamandan da robotun mevcut hızının  limit hızdan daha büyük değilse rotate ile manevra işlemi yapma
-        //   manoeuvre = false;
-        //   Stop_Rotating();
-        //  }
+           /*SENSÖR VERİ */
+           double Current_Distance = Sensor_Integration.Robot_Get_Distance();
+           Double[] Current_Velocities = Sensor_Integration.Get_Motors_Speed();
+           // hem sağ hem de sol motorun anlık hızlarının ortalaması alınarak o anki hızın limit hızdan küçük veya büyük oldupu karşılaştırılıyor
+             Double Current_Velocity = (Current_Velocities[0] + Current_Velocities[1]) / 2;
+           if(Current_Distance < Limit_Distance &&  Current_Velocity > limit_Velocity)
+            {
+                // Eğer ki limit meesafeden daha az bir mesafe kalmışsa ve robotun hızı da limit hızdan fazla ise robotun hızını lineer interpolasyon ile azaltıp bir eşik değerinden sonraki değerlede robotu döndrüyoruz 
+                 double Power = Current_Distance / Limit_Distance; 
+                 if (Math.abs(Power) < 0.2d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt robotun manevra yapabilmesi için robotu döndürüyoruz
+                    manoeuvre = true;
+                    Rotate_Robot(1d,true); 
+                 } else {
+                   //Hedef ile arasındaki error mesafesi hala robotun manevra yani dönme işlemini yapacak değerin üstündeyse robota manevra işlemine girene kadar motora verilen gücü yavaş yavaş azalt 
+                     Power_Of_Each_Motors.set(0, Power);
+                     Power_Of_Each_Motors.set(1, Power);
+                 }
+            }
+            else
+            {
+             //eğer ki robotun Robotun çarpabileceği en yakındaki objenin robota uzaklığı limit uzaklıktan küçük olup aynı zamandan da robotun mevcut hızının  limit hızdan daha büyük değilse rotate ile manevra işlemi yapma
+             manoeuvre = false;
+             Stop_Rotating();
+            }
         //SENSÖR KULLANMADAN DİJİTAL ORTAMDA TEST KODU
         //BU KODUN ALGORİTMASI ROBOTUN SETPOİNT BELLİ BİR LİMİTTE YAKLAŞTIĞI ZAMAN O NOKTADA MOTORLARA GÜCÜ AZALTIP MANEVRA YAPMASI VE KENDİSİNE YENİ BİR SET POİNT OLUŞTURUP BU SEFER ORAY GİTMESİNİ SAĞLAMAK
         //robotun manevra hareketi öncesi başlangıç açısını çekmek
-        if( Initial_Angle == 999d ) Initial_Angle  = CurrentAngle;
+        if(Initial_Angle == 999d ) Initial_Angle  = CurrentAngle;
         //robotun manevra hareketini yapmadan önceki açısıyla dönerkenki açı farkının değeri 45'den az olursa manevra yapsın yani dönsün
          if(Math.abs(CurrentAngle - Initial_Angle ) < 45) 
          {
