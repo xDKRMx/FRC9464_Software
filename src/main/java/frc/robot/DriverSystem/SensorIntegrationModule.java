@@ -9,6 +9,24 @@ import edu.wpi.first.wpilibj.Timer;
 
 import com.kauailabs.navx.frc.AHRS;
 
+      //multithreading sınıfı
+//MultiThread object = new MultiThread();
+//object.start();
+      //ile çağrılabilir.
+public class MultiThread extends Thread{
+  public void run()
+    double dist1 = Robot_Get_Distance();
+    Thread.sleep(100);
+    double dist2 Robot_Get_Distance();
+    double closure_rate;
+    if(dist1 - dist2 < 60){
+      closure_rate = (dist1 - dist2)/10;
+    }
+    else{
+      closure_rate = 0;
+    }
+  
+}
 
 public  class SensorIntegrationModule  {
       //Bu class Motor Controller ve Input Processing Modüllerindeki işlemlerin devamı niteliğindedir
@@ -43,7 +61,6 @@ public  class SensorIntegrationModule  {
       private double Current_X_Position = 0f;
       private double Current_Y_Position = 0f;
        private double Current_Rotation = 0d;
-       private Timer timer;
        //UltraSonic sensör tanımlaması
 
       /******************/
@@ -53,10 +70,9 @@ public  class SensorIntegrationModule  {
       Motor_Controller = _Motor_Controller;
       navX_MXP_Init();
       ultrasonic_Init();
-      
-      
      }
 
+     }
      /****************/
 
     /*| Region : Motor Eşleştirma|*/
@@ -210,25 +226,7 @@ public  class SensorIntegrationModule  {
       //voltage_scale_factor bizim voltajda herhangi bir değişiklik olması durumunda bile doğru veri almamızı sağlar(0 = 0V, 4095 = 5V değerleri arasında).
       //cm cinsinden birim
       double voltage_scale_factor = 5/RobotController.getVoltage5V();
-      return raw_Value * voltage_scale_factor * 0.125;
-    }
-    //m/s cinsinden closure rate
-    public Double Robot_Get_Closure_Rate(){
-      double dist1 = Robot_Get_Distance();
-      //ÖNEMLİ buraya 100 ms gecikme lazım
-      double dist2 = Robot_Get_Distance();
-      if(dist1 - dist2 < 50){
-        return (dist1 - dist2)/10;
-      }
-      else{
-        dist1 = Robot_Get_Distance();
-        //Önemli yine burada 100 ms gecikme eklemek lazım
-        dist2 = Robot_Get_Distance();
-        return (dist1 - dist2)/10;
-      }
-//bu method şu anda çok iyi çalışmıyor hala çalışma altında
-      
-      
+      return raw_Value * voltage_scale_factor * 0.125;   
     }
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
      /***************************/
@@ -237,4 +235,3 @@ public  class SensorIntegrationModule  {
 
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİ KOMUTUNU VERME|*/
     /***************************/
-}
