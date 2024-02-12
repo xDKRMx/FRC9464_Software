@@ -156,6 +156,7 @@ public  class SensorIntegrationModule  {
     {
       ahrs = new AHRS(SPI.Port.kMXP); 
       reset_Gyro_Yaw();
+      Robot_Init_Position();
     }
     public void reset_Gyro_Yaw(){
       ahrs.reset();
@@ -209,7 +210,7 @@ public  class SensorIntegrationModule  {
     //Ultra Sonic Sensör
     void ultrasonic_Init(){
       ultrasonic = new AnalogInput(0);
-      Closer_rate();
+      //Closer_rate();
     }
     public Double Robot_Get_Distance()
     {  
@@ -230,19 +231,15 @@ public  class SensorIntegrationModule  {
                       double dist1 = Robot_Get_Distance();
                       Thread.sleep(100); // 100 milisaniye beklet
                       double dist2 = Robot_Get_Distance();
-                      double closure_rate;
+                      double closure_rate = 0;
                       if (dist1 - dist2 < 60) {
                           closure_rate = (dist1 - dist2) / 10;
                       } else {
                           closure_rate = 0;
                       }
-  
-                      // Kapanma hızını yazdır veya başka bir şekilde kullan
-                      System.out.println("Kapanma hızı: " + closure_rate);
-  
                       // Burada 100 milisaniye bekleme zaten yapıldığı için ekstra bir Thread.sleep(100) çağrısına gerek yok
                   } catch (InterruptedException e) {
-                      System.out.println("Thread kesintiye uğradı, döngü sona eriyor.");
+                      System.out.println("Thread kesintiye uğradi, döngü sona eriyor.");
                       Thread.currentThread().interrupt(); // Kesinti durumunu koru
                       break; // Döngüyü sonlandır
                   }

@@ -5,7 +5,6 @@ package frc.robot.DriverSystem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -71,6 +70,8 @@ public  class MotorControllerModule {
      //ODOMETRİ HESABI İLE
      Pose2d Current_Point;
      Pose2d Setpoint;
+     /*GEÇİCİ SÜRELİĞİNE OLUŞTURULMUŞ MANEVRA SİSTEMİ TESTİ */
+     ArrayList<Pose2d> OBSTACLES = new ArrayList<>(Collections.nCopies(5, null));
      //Senör verilerine göre
     //  Double[]  Current_Point_Sensor = new Double[2];
     //  Double[] Setpoint_Sensor = new Double[2];
@@ -269,9 +270,9 @@ public  class MotorControllerModule {
                //Lineer İnterpolasyon : İKİ sayı arasındaki farkı yine farklı iki sayı arasındaki değere indirgemek. Mesela 40 - 0 arasındaki sayıları 1 ile 0'a indirmek gibi 40 ise sayı değeri 1,  0 ise  0 , 20 ise 0.5 gibi. 
                // Not :  *5 katsayısı daha hızlı dönüp vakit kaybetmemesi için verilmiştir
                 double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference ) *5 : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference )*5 ;
-              if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !reached_Setpoint && !reached_Angle)
+              if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !reached_Setpoint && !reached_Angle && !manoeuvre)
               {
-                System.out.println("AÇI FARKI " +Math.abs(CurrentAngle - TargetAngle) );
+               // System.out.println("AÇI FARKI " +Math.abs(CurrentAngle - TargetAngle) );
                 //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
                Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
               }
@@ -287,8 +288,6 @@ public  class MotorControllerModule {
                  Autonomous_Set_Robot();
 
               }
-              
-              Pose2dSendable.field2.setRobotPose(Setpoint);
            }
            Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
        }
@@ -306,8 +305,13 @@ public  class MotorControllerModule {
                 Set_Point_X_Position - X_position));
                /**/
                // o açı değerini radyan cinsine çevirip Pose2D class'ine yollama
-              Rotation2d Default_Rotation = new Rotation2d(Math.toRadians(targetAngle));
-             Pose2d Setpoint = new Pose2d(Set_Point_X_Position, Set_Point_Y_Position, Default_Rotation);
+               Rotation2d Default_Rotation = new Rotation2d(Math.toRadians(targetAngle));
+               Pose2d Setpoint = new Pose2d(Set_Point_X_Position , Set_Point_Y_Position, Default_Rotation);
+              for (int a = 0; a < 5 ; a++) {
+                Double ex = (5) * Random.nextDouble();
+                Pose2d pose = new Pose2d(Set_Point_X_Position -ex ,Set_Point_Y_Position -ex , Default_Rotation );
+                OBSTACLES.set(a, pose);
+              }
              return Setpoint;
         }
 
@@ -331,24 +335,34 @@ public  class MotorControllerModule {
         if(Initial_Error == 999d) Initial_Error = error;
         //Roobtun motorlarına verilecek gücün yine Lineer Interpolasyon ile eror mesafesine bağlı olarak verilmesi
         double Power = error / Initial_Error; 
-        System.out.println( error + " ERROR ");
+       // System.out.println( error + " ERROR ");
         if (Math.abs(error) < 1d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt durma komutu yazılmış
-          // Manvra testi için yorum satırına alınmıştır error'ün koşulu normalde 0.1 altı
-            //Power_Of_Each_Motors.set(0, 0d);
+          // Manevra testi için yorum satırına alınmıştır error'ün koşulu normalde 0.1 altı
+            //  Power_Of_Each_Motors.set(0, 0d);
             // Power_Of_Each_Motors.set(1,0d);
             /************** */
-            //robotun motorlara güç vermeyi durdurması yerine manevra harketine girmesi için yapılan test kodu 
-            
-        } else {
+            //robotun motorlara güç vermeyi durdurması yerine yeni bir setpoint oluşturup oraya gitmesini sağlaması ve bu şekilde SANAL ORTAMDA sonsuz loop'a sokulması
+            Stop_Rotating();
+            Is_Point_Setted = false;
+            reached_Setpoint = false;
+            reached_Angle = false;
+            Initial_Angle_Difference = 999d;
+        } 
+        else {
           //ROBOTUN HEDEFLENEN NOKTAYA YAKLAŞIRKEN ÖNÜNE ÇIKAN HERHANGİ BİR ENGEL ÇIKMASI HALİNDE MANEVRA KONTOLÜ YAPMASI
           //Ultrasonic sensörü aracılığıyla yapılan bu kontrolde eğer ki robotun önüne limit mesafeden daha kısa mesafede bir obje çıkarsa ve o anda robotun hızı limit hızdan fazlaysa robot kendisini döndürerek bir nevi engelden manevra sistemi ile kaçınacak
           //Eğer ki önüne herhangi bir obje çıkmazsa çıksa bile artık hızı yavaşlamışsa boş yere manevra yapmayacak
-          Robot_manoeuvre();
+          /*MANEVRA SİSTEMİ ŞU ANDA GERÇEK SENSÖRLERLE TEST YAPILAMADIĞI İÇİN SADECE YENİ BİR SETPOİNT NOKTASI OLUŞTURMAYA YARIYOR */
+           Robot_manoeuvre();
           //Hedef ile arasındaki error mesafesi hala eşik değer üstündeyse robotun motorlarına power oranında güç ver 
-          if(manoeuvre)
+          if(!manoeuvre)
           {
             Power_Of_Each_Motors.set(0, Power);
             Power_Of_Each_Motors.set(1, Power);
+          }
+          else
+          {
+             Pose2dSendable.field2.setRobotPose(Setpoint);
           }
         }
        }
@@ -386,56 +400,163 @@ public  class MotorControllerModule {
           robot_Status = RobotStatus.DYNAMIC;
            
         }
+      /*|Title : ROBOT MANEVRA SİSTEMİ|*/  
       //Periodic metot
       //Otonom Kısmı için
-      private double Initial_Angle = 999d;
+
+      //Robotun harkeet doğrultusundaki çarpabileceği nokta
+      //Bu nokta gerçek dünyada bir yeri temsil etmiyor sadece matematiksel olarak daha kesin ve sağlam bir manevra sistemi oluşturulması için POSE2D kullanılarak sanal bir nokta oluşturulmuştur.
+      Pose2d Obstacle_Point;
+      //UltraSonic'den gelen mesafe değeri
+      double Current_Distance = 0d;
+      double Initial_Distance = 999d;
+      //Robotun POSE2D'de bulunduğu nokta ile obstacle noktası arasındaki fark
+      double Current_Difference_Between_Points = 0d;
+      //Obstacle noktasının X Y değerlerinin robotun X Y değerlerine farkı
+      Double X_difference = 0d;
+      Double Y_difference = 0d;
+      double Angle_Difference = 0d;
       public void Robot_manoeuvre()
       {
-        //Robotun çarpabileceği en yakındaki objenin robota uzaklığı ve o andaki hızı ölçülüyor
-        
+          //|MANEVRA 1. KISIM GERÇEK ROBOT ÜSTÜNDE SENSÖR VERİLERİNİ SANAL ORTAMA AKTARARAK MANEVRA SİSTEMİNİ OLUŞTURMA|//
+          //Robotun çarpabileceği en yakındaki objenin robota uzaklığı ve o andaki hızı ölçülüyor
            /*SENSÖR VERİ */
-           double Current_Distance = Sensor_Integration.Robot_Get_Distance();
-           Double[] Current_Velocities = Sensor_Integration.Get_Motors_Speed();
-           // hem sağ hem de sol motorun anlık hızlarının ortalaması alınarak o anki hızın limit hızdan küçük veya büyük oldupu karşılaştırılıyor
-             Double Current_Velocity = (Current_Velocities[0] + Current_Velocities[1]) / 2;
-           if(Current_Distance < Limit_Distance &&  Current_Velocity > limit_Velocity)
-            {
-                // Eğer ki limit meesafeden daha az bir mesafe kalmışsa ve robotun hızı da limit hızdan fazla ise robotun hızını lineer interpolasyon ile azaltıp bir eşik değerinden sonraki değerlede robotu döndrüyoruz 
-                 double Power = Current_Distance / Limit_Distance; 
-                 if (Math.abs(Power) < 0.2d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt robotun manevra yapabilmesi için robotu döndürüyoruz
-                    manoeuvre = true;
-                    Rotate_Robot(1d,true); 
-                 } else {
-                   //Hedef ile arasındaki error mesafesi hala robotun manevra yani dönme işlemini yapacak değerin üstündeyse robota manevra işlemine girene kadar motora verilen gücü yavaş yavaş azalt 
-                     Power_Of_Each_Motors.set(0, Power);
-                     Power_Of_Each_Motors.set(1, Power);
-                 }
-            }
-            else
-            {
-             //eğer ki robotun Robotun çarpabileceği en yakındaki objenin robota uzaklığı limit uzaklıktan küçük olup aynı zamandan da robotun mevcut hızının  limit hızdan daha büyük değilse rotate ile manevra işlemi yapma
-             manoeuvre = false;
-             Stop_Rotating();
-            }
+          //  Current_Distance = Sensor_Integration.Robot_Get_Distance();
+          //  Double[] Current_Velocities = Sensor_Integration.Get_Motors_Speed();
+          //  // hem sağ hem de sol motorun anlık hızlarının ortalaması alınarak o anki hızın limit hızdan küçük veya büyük oldupu karşılaştırılıyor
+          //  Double Current_Velocity = (Current_Velocities[0] + Current_Velocities[1]) / 2;
+          //  //Eğer ki Obstacle Noktası mevcut ise robotun POSE2D kullanılarak o noktaya olan uzaklığı hesaplanır ve özellikle robot manevra yaparken beli bir miktar döndükten sonra ne kadar ileri gitmesinde belirleyici olur.
+          //  /*ODOMETRİ SİSTEMİ İLE obstacle noktası ile robotun varolan uzaklığının kontrolü */
+          //  if(Obstacle_Point != null)
+          //  {
+          //    X_difference = Math.abs(Current_Point.getX() -Obstacle_Point.getX());
+          //    Y_difference = Math.abs(Current_Point.getY() -Obstacle_Point.getY());
+          //    Current_Difference_Between_Points = Math.sqrt(X_difference * X_difference + Y_difference * Y_difference);
+          //  }
+          //  if(Current_Distance != 0d &&  Current_Distance < Limit_Distance &&  Current_Velocity > limit_Velocity )
+          //   {
+          //        // Bu kısımda eğer ki robotun Ultrasonic'in döndürdüğü veriye göre en yakınındaki objeye olan uzaklığı limit mesafeden küçükse burada yapılacak manevra işlemini daha gerçekçi ve hatasız verilerle yapmak için POSE2D'den yararlanıyoruz
+          //        //robotun manevra yapmadan önceki son distance mesafesini robotun koordinat sistemi üzerinden bulunduğu konuma ekleyerek robotun çarpacağı objeyi Obstacle noktası olarak işaretleme
+          //        if(Initial_Distance == 999d)
+          //        {
+          //           Initial_Distance =Current_Distance;
+          //           Obstacle_Point = Set_ObstaclePoint(Initial_Distance);
+          //        }
+          //        // Eğer ki limit meesafeden daha az bir mesafe kalmışsa ve robotun hızı da limit hızdan fazla ise robotun hızını lineer interpolasyon ile azaltıp bir eşik değerinden sonraki değerlede robotu döndrüyoruz 
+          //        double Power = Current_Distance / Limit_Distance; 
+          //         if (Math.abs(Power) < 0.5d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt robotun manevra yapabilmesi için robotu döndürüyoruz
+          //            manoeuvre = true;
+          //         } else {
+          //           //Hedef ile arasındaki error mesafesi hala robotun manevra yani dönme işlemini yapacak değerin üstündeyse robota manevra işlemine girene kadar motora verilen gücü yavaş yavaş azalt 
+          //             Power_Of_Each_Motors.set(0, Power);
+          //             Power_Of_Each_Motors.set(1, Power);
+          //         }
+          //   }
+          //   else
+          //   {
+          //    //eğer ki robotun Robotun çarpabileceği en yakındaki objenin robota uzaklığı limit uzaklıktan küçük olup aynı zamandan da robotun mevcut hızının  limit hızdan daha büyük değilse rotate ile manevra işlemi yapma
+          //    Stop_Rotating();
+          //   }
+          //   //UltraSonic sensörden alınan verilerde istenilen koşul sağlanırsa buradaki manevra işlemi gerçekleşecek
+          //    if(manoeuvre)
+          //    {
+          //      //Manevra sisteminde robotun durumuna göre 3 farklı durum söz konusudur
+          //       if(Current_Distance < Limit_Distance)
+          //      {
+          //        //Birinci durum olan bu koşul robotun hem limit mesafeden daha kısa bir mesafede ve baktığı açının da obstacle noktasına doğru olduğunu gösterir
+          //        //bu durumdayken robotun dönmesi sağlanarak o noktaya çarpması engellenir
+          //        Rotate_Robot(1d,true); 
+          //      }
+          //      else if(Current_Distance > Limit_Distance && Current_Difference_Between_Points < Limit_Distance)
+          //      {
+          //        //İkinci durumda robotun bulunduğu nokta yine obstacle noktasının limit mesafesinden daha kısa ancak bu sefer robotun hareket doğrultusunda değil ise robotun bu sefer o noktadan kaçınmak için baktığı noktaya doğru bakması sağlanır
+          //         Power_Of_Each_Motors.set(0, 0.5d);
+          //         Power_Of_Each_Motors.set(1, 0.5d);
+          //      }
+          //      else
+          //      {
+          //        //üçüncü durumda robot eğer ki iki durumu da sağlıyorsa manevra işlemi bitirilerek tekrar gitmesi gereken noktaya gitmesi sağlanır
+          //        Stop_Rotating();
+          //        manoeuvre = false;
+          //        reached_Angle = false;
+          //        Initial_Angle_Difference = 999d;
+          //        Initial_Distance = 999d;
+          //        Obstacle_Point = null;
+          //      }
+          //    }
+
+          
+         //|MANEVRA 2. KISIM SANAL ORTAMDA TEST İÇİN YAZILMIŞ SANAL POSE2D DEĞERLERİNE GÖRE MANEVRA SİSTEMİ|//
+         /*******************/
         //SENSÖR KULLANMADAN DİJİTAL ORTAMDA TEST KODU
         //BU KODUN ALGORİTMASI ROBOTUN SETPOİNT BELLİ BİR LİMİTTE YAKLAŞTIĞI ZAMAN O NOKTADA MOTORLARA GÜCÜ AZALTIP MANEVRA YAPMASI VE KENDİSİNE YENİ BİR SET POİNT OLUŞTURUP BU SEFER ORAY GİTMESİNİ SAĞLAMAK
         //robotun manevra hareketi öncesi başlangıç açısını çekmek
-        if(Initial_Angle == 999d ) Initial_Angle  = CurrentAngle;
-        //robotun manevra hareketini yapmadan önceki açısıyla dönerkenki açı farkının değeri 45'den az olursa manevra yapsın yani dönsün
-         if(Math.abs(CurrentAngle - Initial_Angle ) < 45) 
+        //GEÇİCİ MANEVRA SİSTEMİ KONTROLÜ İÇİN OLUŞTURULMUŞ SANAL OBSTACLE NOKTALARI
+        //BU TEST KODUDUR GERÇEK ROBOTTA İŞLEVİ YOKTUR
+        /* */
+        if(Obstacle_Point != null)
          {
-          Rotate_Robot(1, true);
+          //Eğer ki obstacle noktası oluşturulmuş ise bu obatacle noktasının POSE2D kullanılarak Robota olan uzaklığı ve Robot ile Obstacle noktasının sahip olduğu açı farkı
+            X_difference = Math.abs(Current_Point.getX() -Obstacle_Point.getX());
+            Y_difference = Math.abs(Current_Point.getY() -Obstacle_Point.getY());
+            Angle_Difference = Math.abs(Current_Point.getRotation().getDegrees() -  Obstacle_Point.getRotation().getDegrees());
+            Current_Distance = Math.sqrt(X_difference * X_difference + Y_difference * Y_difference); 
+         }
+         //Obstacle noktası ile robotun bulunduğu konumun Pose2D karşılaştırması sonucu değerler limit değerlere uygun değilse manevra sistemine geçilsin
+         if( Current_Distance  != 0d && Current_Distance < Limit_Distance &&  Angle_Difference < 15) manoeuvre = true;
+         //UltraSonic sensörden alınan verilerde istenilen koşul sağlanırsa buradaki manevra işlemi gerçekleşecek
+         if(manoeuvre)
+         {
+           //Manevra sisteminde robotun durumuna göre 3 farklı durum söz konusudur
+            if(Current_Distance < Limit_Distance && Angle_Difference < 15)
+           {
+             //Birinci durum olan bu koşul robotun hem limit mesafeden daha kısa bir mesafede ve baktığı açının da obstacle noktasına doğru olduğunu gösterir
+             //bu durumdayken robotun dönmesi sağlanarak o noktaya çarpması engellenir
+             Rotate_Robot(1d,true); 
+           }
+           else if(Current_Distance < Limit_Distance && Angle_Difference > 15)
+           {
+             //İkinci durumda robotun bulunduğu nokta yine obstacle noktasının limit mesafesinden daha kısa ancak bu sefer robotun hareket doğrultusunda değil ise robotun bu sefer o noktadan kaçınmak için baktığı noktaya doğru bakması sağlanır
+              Power_Of_Each_Motors.set(0, 0.5d);
+              Power_Of_Each_Motors.set(1, 0.5d);
+           }
+           else
+           {
+             //üçüncü durumda robot eğer ki iki durumu da sağlıyorsa manevra işlemi bitirilerek tekrar gitmesi gereken noktaya gitmesi sağlanır
+             Stop_Rotating();
+             manoeuvre = false;
+             reached_Angle = false;
+             Initial_Angle_Difference = 999d;
+             Obstacle_Point = null;
+           }
          }
          else
          {
-         //robotun manevra hareketini yapmadan önceki açısıyla dönerkenki açı farkının değeri 45'den fazla olursa bu sefer dönmeyi durdurup kendine yeni setpoint noktası oluşturup oraya gitsin
-          Stop_Rotating();
-          Is_Point_Setted = false;
-          reached_Setpoint = false;
-          reached_Angle = false;
-          Initial_Angle_Difference = 999d;
+            for (Pose2d pose2d : OBSTACLES) {
+            //Buradaki Foreach döngüsü Sanal ortamda oluşturulmuş olan obstacle noktalarının sıra sıra obstacle noktası olması sağlanır
+            Obstacle_Point = pose2d;
+            //manevra sistemi çalışmıyorsa gösterge olarak green ghost robot modelini obstacle noktasında göster
+            if(!manoeuvre)  Pose2dSendable.field2.setRobotPose(Obstacle_Point);
+          }
          }
-      }
+         /****************** */
+    }
+    //Bu kod bizim manevra işlemi sırasında daha kesin ve sağlam sonuçlar vermemiz için robotun çarpabileceği noktayı POSE2D kullanarak analitik düzlem X Y cinsinden hesaplamaktadır
+    private Pose2d Set_ObstaclePoint(double Increment)
+    {
+      //Increment parametresi Ultrasonic'den çekilen ve robotun hareket doğrultusundaki çarpacağı objeye olan uzaklığı
+      //bu uzaklığın obstacle noktasının koordinatları bulunması için robotun bulunduğu noktaya eklenmesi lazım
+      //robotun önce rotasyonu bulunması lazım bu sayede eklenecek değerin ne kadarı X ne kadarı Y ekseninde olduğu bulunabilir
+      Double Robot_Angle = Math.toRadians(Sensor_Integration.Get_Rotation_Angle());
+      // Engelin X ve Y koordinatları için değişimi hesapla
+      //arttırma noktası bileşenlerine ayrıldıktan sonra trigonometrik değerlere göre Obstacle noktasının tam değerleri temsil etmesi için Trigonometri kullanılıyor
+      double deltaX = Current_Point.getX() + Increment * Math.cos(Robot_Angle);
+      double deltaY = Current_Point.getY() +Increment * Math.sin(Robot_Angle);
+      Pose2d Obstacle = new Pose2d(deltaX, deltaY, Current_Point.getRotation());
+      //Değerler yerine yazıldıktan sonra Pose2D nesnesine aktarılarak metot bu nesneyi döndürüyor
+      return Obstacle;
+    }
+    /*|END Title : ROBOT MANEVRA SİSTEMİ|*/  
 
     /*|Endregion : CAN MOTOR KONTROL  |*/
         /***************************/
@@ -458,11 +579,10 @@ public  class MotorControllerModule {
             {
                Power_Of_Each_Motors.set(0,Power_Of_Each_Motors.get(0)-Extra_Difference) ;
                Power_Of_Each_Motors.set(1,Power_Of_Each_Motors.get(1)+Extra_Difference) ;
-
             }
             else
             {
-                Power_Of_Each_Motors.set(0,Power_Of_Each_Motors.get(0)+Extra_Difference) ;
+               Power_Of_Each_Motors.set(0,Power_Of_Each_Motors.get(0)+Extra_Difference) ;
                Power_Of_Each_Motors.set(1,Power_Of_Each_Motors.get(1)-Extra_Difference) ;
             }
          }
@@ -486,7 +606,6 @@ public  class MotorControllerModule {
        //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
          void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
         {
-          
             // Robotun durumunu kontrol et
            if(robot_Status != RobotStatus.IDLE)
            {
@@ -507,7 +626,6 @@ public  class MotorControllerModule {
           // double right_motor_speed = Desired_Speed;
            // Motorların hız kontrol sinyallerini uygula
            //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
-
            robot_Status = RobotStatus.CONSTANTPOWER;
            Power_Of_Each_Motors.set(0, Desired_Speed);
            Power_Of_Each_Motors.set(1, Desired_Speed);
