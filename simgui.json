@@ -29,10 +29,14 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Field": "Field2d",
-      "/SmartDashboard/Field2": "Field2d"
+      "/SmartDashboard/Field2": "Field2d",
+      "/SmartDashboard/Field3": "Field2d"
     }
   },
   "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
     "NT3@127.0.0.1:49464": {
       "open": true
     },

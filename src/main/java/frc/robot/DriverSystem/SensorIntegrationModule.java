@@ -3,6 +3,7 @@ package frc.robot.DriverSystem;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.AnalogInput;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.SPI;
@@ -86,6 +87,7 @@ public  class SensorIntegrationModule  {
       Double[] speed = new Double[2];
       speed[0] = left_motor_speed;
       speed[1] = right_motor_speed;
+      
       return speed;
    }
      //Encoder aracılığıyla Robotun toplam Alınan yolunu Çekme
@@ -176,8 +178,8 @@ public  class SensorIntegrationModule  {
     {
     double rotation_angle = ahrs.getAngle();
     //Esas ölçüsünü alma
-    while (rotation_angle > 180) rotation_angle -= 360;
-    while (rotation_angle < -180) rotation_angle += 360;
+    rotation_angle %= 360;
+    if (rotation_angle < 0) rotation_angle += 360;
     return rotation_angle;
     }
     //gyro ivmeyi G biriminde veriyor o yüzden m/s^2 ye çevirmek için 9.8 ile çarpıyoruz

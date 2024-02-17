@@ -16,6 +16,7 @@ public class Pose2dSendable implements Sendable {
     // Field2d nesnesi, simülasyon GUI'sinde robotun konumunu göstermek için
     public Field2d field = new Field2d();
     public static Field2d field2 = new Field2d();
+    public static Field2d field3 = new Field2d();
     public Pose2dSendable(Pose2d pose, double wheelbase, double trackwidth, double robotLength, double robotHeight) {
         this.pose = pose;
         this.wheelbase = wheelbase;
@@ -25,6 +26,7 @@ public class Pose2dSendable implements Sendable {
         // SmartDashboard'da Field2d nesnesini göster
         SmartDashboard.putData("Field", field);
         SmartDashboard.putData("Field2", field2);
+        SmartDashboard.putData("Field3", field3);
     }
 
      public Pose2d GetPose() {

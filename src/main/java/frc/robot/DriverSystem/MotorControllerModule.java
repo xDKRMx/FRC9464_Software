@@ -5,14 +5,15 @@ package frc.robot.DriverSystem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
 import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
 import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
@@ -258,9 +259,9 @@ public  class MotorControllerModule {
 
                CurrentAngle =Current_Point.getRotation().getDegrees();
                //robotun o andaki mevcut açısı  -180 180 derece dışındaysa esas ölçüsü alınır
-               while (CurrentAngle > 180) CurrentAngle -= 360;
-               while (CurrentAngle < -180) CurrentAngle += 360;
-
+               CurrentAngle %= 360;
+               if (CurrentAngle < 0) CurrentAngle += 360;
+               
                //Başlangıçta sahip olduğu yön yani açı değeri ile setpoint ile Current point yani robotun konumu arasındaki açının farkı hesaplanır
                if( Initial_Angle_Difference==999d)
                {
@@ -269,26 +270,37 @@ public  class MotorControllerModule {
                //Lineer interpolasyon sistemi ile robotun yönünü target angle'a yaklaştırmak maksadıyla bir dönme hızı veriliyor.
                //Lineer İnterpolasyon : İKİ sayı arasındaki farkı yine farklı iki sayı arasındaki değere indirgemek. Mesela 40 - 0 arasındaki sayıları 1 ile 0'a indirmek gibi 40 ise sayı değeri 1,  0 ise  0 , 20 ise 0.5 gibi. 
                // Not :  *5 katsayısı daha hızlı dönüp vakit kaybetmemesi için verilmiştir
-                double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference ) *5 : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference )*5 ;
-              if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !reached_Setpoint && !reached_Angle && !manoeuvre)
+               double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )*3  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) *2;
+               if(Math.abs(CurrentAngle - TargetAngle ) > 75) Turning_Speed = 1;
+              
+               //Turning Speed Değeri geldikte sonra robotun baktığı açı ile istenilen açı arasındaki fark 2dereceden fazl olduğu sürece döndürülsün 
+               //2 derece olmasının sebebi robotun tam açı değerini bulmak için fazla vakit kaybetmemesi ve bir an önce istenilen yola gitmesi
+              if(Math.abs(CurrentAngle - TargetAngle) > 2d && !reached_Setpoint  && !manoeuvre && !reached_Angle)
               {
-               // System.out.println("AÇI FARKI " +Math.abs(CurrentAngle - TargetAngle) );
                 //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
                Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
               }
               else
               {
-                //koşul sağlandığında robotu döndürmeyi bırak ve robotun motorlarına bu sefer istenilen Setpoint noktasına gitmesi için güç ver
-                Stop_Rotating();
+                //koşul sağlandığında robotu döndürmeyi bırak ve robotun motorlarına bu sefer istenilen Setpoint noktasına gitmesi için güç ver  
+                // Stop_Rotating();
                 if(reached_Angle == false) reached_Angle = true;
               }
               if(reached_Angle)
               {
-                //Robotun motorlarına  güç ver
-                 Autonomous_Set_Robot();
-
+               Autonomous_Set_Robot(); //Robotun motorlarına  güç ver 
+               //Robotun hem dönmek için hem de hedeflenen noktaya gitmek için vakit kaybetmemesi için biz robota aynı anda iki tane işlem yaptırıyoruz bu sayede vakit kazanıyoruz.
+               //buradaki işlemde Autonomous_Set_Robot robotun motorlarına ileri gidecek şekilde (Lineer Interpolasyon ile) güç veriyor alttaki sorgulama ise robotun hedef noktası ile  arasında bir açı farkı varsa robotun oraya giderken o noktaya tam gidebilmesi için robotu döndürür.
+               // robot setpoint noktasına giderken iki işlem gerçekleşeceği için optimizasyonda sıkıntı çıkabilir duruma göre kod optimize edilecektir
+               if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !manoeuvre)
+               {
+                Power_Of_Each_Motors.set(0,  (CurrentAngle - TargetAngle) > 0 ? Power_Of_Each_Motors.get(1) + Turning_Speed : Power_Of_Each_Motors.get(0) -  Turning_Speed);
+                Power_Of_Each_Motors.set(1,  (CurrentAngle - TargetAngle) > 0 ? Power_Of_Each_Motors.get(1) - Turning_Speed : Power_Of_Each_Motors.get(1) + Turning_Speed);
+               }
               }
+               Pose2dSendable.field2.setRobotPose(Setpoint);
            }
+           //Main_Robot_Drive.setSafetyEnabled(false);
            Main_Robot_Drive.tankDrive( Power_Of_Each_Motors.get(0),Power_Of_Each_Motors.get(1));
        }
         private Pose2d SetRandomPoint_Pose2D(double X_position, double Y_Position)
@@ -321,6 +333,8 @@ public  class MotorControllerModule {
           // Setpoint'e göre hedef açıyı hesapla
           double targetAngle = Math.toDegrees(Math.atan2(SetPoint.getY() - CurrentPoint.getY(),
           SetPoint.getX() - CurrentPoint.getX()));
+          targetAngle %= 360;
+          if (targetAngle < 0) targetAngle += 360;
           return targetAngle;
         }
        //Otonom Motor Drive Kodu
@@ -357,13 +371,11 @@ public  class MotorControllerModule {
           //Hedef ile arasındaki error mesafesi hala eşik değer üstündeyse robotun motorlarına power oranında güç ver 
           if(!manoeuvre)
           {
+            //Eğer ki robotun manevra yapması gerekecek şekilde önünde bir obje yoksa lineer interpolasyon sistemi ile robotun hedef noktaya gitmesi sağlanıyor
             Power_Of_Each_Motors.set(0, Power);
             Power_Of_Each_Motors.set(1, Power);
           }
-          else
-          {
-             Pose2dSendable.field2.setRobotPose(Setpoint);
-          }
+           
         }
        }
      /*| END Title : OTONOM MOTOR KISMI  |*/  
@@ -400,6 +412,7 @@ public  class MotorControllerModule {
           robot_Status = RobotStatus.DYNAMIC;
            
         }
+        
       /*|Title : ROBOT MANEVRA SİSTEMİ|*/  
       //Periodic metot
       //Otonom Kısmı için
@@ -418,9 +431,9 @@ public  class MotorControllerModule {
       double Angle_Difference = 0d;
       public void Robot_manoeuvre()
       {
+         /*SENSÖR VERİ */
           //|MANEVRA 1. KISIM GERÇEK ROBOT ÜSTÜNDE SENSÖR VERİLERİNİ SANAL ORTAMA AKTARARAK MANEVRA SİSTEMİNİ OLUŞTURMA|//
           //Robotun çarpabileceği en yakındaki objenin robota uzaklığı ve o andaki hızı ölçülüyor
-           /*SENSÖR VERİ */
           //  Current_Distance = Sensor_Integration.Robot_Get_Distance();
           //  Double[] Current_Velocities = Sensor_Integration.Get_Motors_Speed();
           //  // hem sağ hem de sol motorun anlık hızlarının ortalaması alınarak o anki hızın limit hızdan küçük veya büyük oldupu karşılaştırılıyor
@@ -536,9 +549,10 @@ public  class MotorControllerModule {
             //Buradaki Foreach döngüsü Sanal ortamda oluşturulmuş olan obstacle noktalarının sıra sıra obstacle noktası olması sağlanır
             Obstacle_Point = pose2d;
             //manevra sistemi çalışmıyorsa gösterge olarak green ghost robot modelini obstacle noktasında göster
-            if(!manoeuvre)  Pose2dSendable.field2.setRobotPose(Obstacle_Point);
+            Pose2dSendable.field3.setRobotPose(Obstacle_Point);
           }
          }
+         
          /****************** */
     }
     //Bu kod bizim manevra işlemi sırasında daha kesin ve sağlam sonuçlar vermemiz için robotun çarpabileceği noktayı POSE2D kullanarak analitik düzlem X Y cinsinden hesaplamaktadır
