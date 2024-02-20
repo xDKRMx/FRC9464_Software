@@ -21,6 +21,7 @@ public class Robot extends TimedRobot {
 //Bu sayfadaki fonksiyonlar içerisine Robot class'in altında composition veya polymorphism edilmiş class'ler ve Interface'lerin içerisindeki fonksiyonlar çağırılacak
  
 // *************************************************//
+
  /* Header : Driver Sytem Class'leri ve Interfaceleri */
 public MotorControllerModule Motor_Controller_Class = new  MotorControllerModule();
 public InputProcessingModule Input_Processing_Class = new  InputProcessingModule(Motor_Controller_Class);
@@ -28,10 +29,10 @@ public TelemetryModule Telemetry_Class = new  TelemetryModule(Motor_Controller_C
 
 //Bu class'i yorum satırına aldım çüknü bu class içerisindeki işlemlerin, fonksiyonların, değişkenlerin hepsini biz Robot.java Dışındaki class'lerden kullanacağız. Yani Robot.java'da bu class'i Instance'ını almaya gerek yok 
 // public SensorIntegrationModule Sensor_Integration_Class = new  SensorIntegrationModule();
+
 // *************************************************//
  /* Header : Manipulation Sytem Class'leri ve Interfaceleri */
-public IntakeModule Intake_Class = new  IntakeModule();
-public ShooterModule Shooter_Class = new  ShooterModule();
+// public ShooterModule Shooter_Class = new  ShooterModule();
 public ClimberModule Climber_Class = new  ClimberModule();
 public ElevatorModule Elavator_Class = new  ElevatorModule();
 
@@ -53,7 +54,6 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   public void robotPeriodic() {
   //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
   Telemetry_Class.Updating_Variables_Smart_Dashboard();
-
   }
 
 
@@ -74,18 +74,17 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   @Override
   public void teleopInit() {
   }
-
-
   @Override
   public void teleopPeriodic() {
-    Motor_Controller_Class.Follow_Periodic();
-      //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
-      Motor_Controller_Class.Robot_Status_Control();
-      //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
-      Input_Processing_Class.Call_Driver_Periodic(true);
-      
-      //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
-  Telemetry_Class.Updating_Variables_Smart_Dashboard();
+     Motor_Controller_Class.Follow_Periodic();
+     //Robotun anlık durumunu sürekli kontrol etmemiz lazım ki robota bir işlem yapmak istediğimiz zaman yapılacak işlem robota ters düşmesin
+     Motor_Controller_Class.Robot_Status_Control();
+     //Buradan periyodik olarak Joysticklerimizdeki yön tuşlarının değerine göre robotumuzun motorlarına güç veriyoruz.
+     Input_Processing_Class.Call_Driver_Periodic(true);
+     //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
+     Telemetry_Class.Updating_Variables_Smart_Dashboard();
+     //Shooter sisteminin periyodik olarak çağırılma işlemi
+     Motor_Controller_Class.Shooter_Module.Shooter_Periodic();
   }
 
   @Override

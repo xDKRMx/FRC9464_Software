@@ -8,15 +8,17 @@ import java.util.Random;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.IdleMode;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
 import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
 import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
+import frc.robot.ManipulationSystem.ShooterModule;
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
 
@@ -34,6 +36,7 @@ public  class MotorControllerModule {
     //Ek modüllerin tanımlaması
     KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     public SensorIntegrationModule Sensor_Integration = new  SensorIntegrationModule(this);
+    public ShooterModule Shooter_Module = new  ShooterModule();
     //Robotun durumu
     public RobotStatus robot_Status;
     // Motorların tanımlamaları
@@ -95,6 +98,9 @@ public  class MotorControllerModule {
         Motor_Power_Control = "Stability";
         //PID controlleri için başlangıç
         PID_Coefficients = new ArrayList<>(Collections.nCopies(3, 0.0));
+        //zamanlayıcıyı sıfırla
+        timer.reset();
+        timer.start();
      }
      /***************************/
 
@@ -116,6 +122,26 @@ public  class MotorControllerModule {
       double Current_time = timer.get();
       return Current_time;
      }
+
+     //Motorlar aracılığıyla robotun birim zaman içerisinde tükettiği toplam enerjiyi hesaplıyoruz
+    public double Get_Energy_Consuption() {
+        // Geçen süreyi al ve timer'ı sıfırla
+        double elapsedTime = Get_Timer();
+         //robotun her bir motorun tükkettiği toplam enerjiyi bulmak için fizikteki E = V * I * t bağıntısını kullanıyoruz
+         //E : tüketilen enerji, V : robotun motorlarındaki voltaj (gerilimi), I: robotun motorlarından geçen akım, t : birim zaman
+        // Motorların anlık akımını 
+        double leftMotorCurrent = Left_Leader.getOutputCurrent();
+        double rightMotorCurrent = Right_Leader.getOutputCurrent();
+        double leftMotorVoltage = Left_Leader.getBusVoltage();
+        double rightMotorVoltage = Right_Leader.getBusVoltage();
+        // Her iki motor için enerji tüketimini hesapla ve topla
+        double leftMotorEnergy = leftMotorVoltage * leftMotorCurrent * elapsedTime / 3600.0; // Wh cinsinden
+        double rightMotorEnergy = rightMotorVoltage * rightMotorCurrent * elapsedTime / 3600.0; // Wh cinsinden
+        // Toplam enerji tüketim ortalamasını SmartDashboard üzerinde göster
+        double Total_Energy_Consumption = leftMotorEnergy + rightMotorEnergy;
+        return Total_Energy_Consumption;
+    }
+
       /* | End Region : MOTOR VERİLERİ ÇEKME  |*/
 
 
@@ -238,6 +264,7 @@ public  class MotorControllerModule {
                 // Current_Point = Sensor_Integration.Robot_Current_Position();
                 Double Current_X_Position = Current_Point.getX();
                 Double Current_Y_Position = Current_Point.getY();
+
               
                // sürekli yeni bir Setpoint noktası oluşturmaması için bir kereliğine mahsus robotun en az 5 en fazla 10 metre ilerisinde vye gerisinde olacak şekilde hem ,X hem Y ekseninde, bir random setpoint oluşturuyoruz
                if(Is_Point_Setted == false)
@@ -271,11 +298,11 @@ public  class MotorControllerModule {
                //Lineer İnterpolasyon : İKİ sayı arasındaki farkı yine farklı iki sayı arasındaki değere indirgemek. Mesela 40 - 0 arasındaki sayıları 1 ile 0'a indirmek gibi 40 ise sayı değeri 1,  0 ise  0 , 20 ise 0.5 gibi. 
                // Not :  *5 katsayısı daha hızlı dönüp vakit kaybetmemesi için verilmiştir
                double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )*3  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) *2;
-               if(Math.abs(CurrentAngle - TargetAngle ) > 75) Turning_Speed = 1;
-              
+                if(Math.abs(CurrentAngle - TargetAngle ) > 75) Turning_Speed = 1;
+
                //Turning Speed Değeri geldikte sonra robotun baktığı açı ile istenilen açı arasındaki fark 2dereceden fazl olduğu sürece döndürülsün 
                //2 derece olmasının sebebi robotun tam açı değerini bulmak için fazla vakit kaybetmemesi ve bir an önce istenilen yola gitmesi
-              if(Math.abs(CurrentAngle - TargetAngle) > 2d && !reached_Setpoint  && !manoeuvre && !reached_Angle)
+              if(Math.abs(CurrentAngle - TargetAngle) > 3d && !reached_Setpoint  && !manoeuvre && !reached_Angle)
               {
                 //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
                Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );

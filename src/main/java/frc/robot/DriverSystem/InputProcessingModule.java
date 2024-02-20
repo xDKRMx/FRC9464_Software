@@ -1,7 +1,10 @@
 package frc.robot.DriverSystem;
+import javax.swing.text.html.parser.Element;
+
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
+import frc.robot.ManipulationSystem.ShooterModule;
 
 //Simülasyonu bilgisayarda yapabilmek için klavye analog ataması
 public  class InputProcessingModule {
@@ -15,13 +18,14 @@ public  class InputProcessingModule {
      private int Active_button = -1;
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
+     private ShooterModule Shooter_Module;
      /***************************/ 
 
       // Constructor
      public InputProcessingModule(MotorControllerModule M_C_Module)
      {
         Motor_Controller_Module = M_C_Module;
-        
+        Shooter_Module = Motor_Controller_Module.Shooter_Module;
      }
       /***************************/
       /*|region : JOYSTICK GİRİŞ İŞLEMLERİ |*/
@@ -35,15 +39,17 @@ public  class InputProcessingModule {
          //Driver station üzerinden joysticklerin bağlı olup olmadığını kontrol ediyoruz eğer ki bağlı değilse keyboard üzerinden işlem yapmasını istiyoruz
          if(Connection_Check(Joystick)) Motor_Controller_Module.Teleop_Drive_Periodic(Joystick);
          else Motor_Controller_Module.Teleop_Drive_Periodic(null);
-             if(Connection_Check(Joystick))
-            {
-             //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
-              Joystick_Button_Processing();
-              //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
-              PID_Motor_Speed();
-              //Rotate kontrol
-              Rotate_Control();
-            }
+          if(Connection_Check(Joystick))
+         {
+          //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
+           Joystick_Button_Processing();
+           //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
+           PID_Motor_Speed();
+           //Rotate kontrol
+           Rotate_Control();
+           //Shoot kontrolü
+            Shoot_Note();
+         }
         }
       
        }
@@ -82,22 +88,24 @@ public  class InputProcessingModule {
 
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {
+          double L1_Input = Joystick.getRawAxis(2);
+          double R1_Input = Joystick.getRawAxis(3);
           // Pozitif yön
-          if(Active_button==5){
-          Motor_Controller_Module.Rotate_Robot(1,true);//turning speed değerini rastgele verdim değiştirilecek
-          }
+          if(L1_Input > 0.1 && R1_Input < 0.1) Motor_Controller_Module.Rotate_Robot(L1_Input,true);
           //Negatif yön
-          else if(Active_button==6){
-            Motor_Controller_Module.Rotate_Robot(1, false);//turning speed değerini rastgele verdim değiştirilecek
-          }
-          else{
-            Motor_Controller_Module.Stop_Rotating();
-          }
+          else if(L1_Input < 0.1 && R1_Input > 0.1)Motor_Controller_Module.Rotate_Robot(R1_Input,false);
+          else Motor_Controller_Module.Stop_Rotating();
         }
+
+        //Shooting Sistemi (L1 için atış AMP'ye, R1 için atış Hopörlöre yapılır) 
+        public void Shoot_Note()
+        {
+          if(Active_button==5) Shooter_Module.Shoot_Subsystem("Amp");
+          else if(Active_button==6)  Shooter_Module.Shoot_Subsystem("Speaker");
+        }
+
        /*| End Region : JOYSTICK DÜĞME İŞLEME| */
       /***************************/
-
-        
 
       /*| Region : HATA YÖNETİMİ VE GÜVENLİK KONTROL| */
        //Joysticklerden gelen sinyalleri işlemek için algoritma
