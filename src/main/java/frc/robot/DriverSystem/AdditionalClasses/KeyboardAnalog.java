@@ -6,6 +6,7 @@ import javax.swing.JFrame;
 
 import frc.robot.DriverSystem.MotorControllerModule;
 import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
+import frc.robot.ManipulationSystem.ShooterModule;
 
 public  class KeyboardAnalog  extends JFrame{
     // POWER DEĞERLERİ 
@@ -13,11 +14,12 @@ public  class KeyboardAnalog  extends JFrame{
      private double Power_amount_RIGHT = 0;
      private final HashSet<Integer> pressedKeys = new HashSet<>();
      // Ek modüllerin tanımlanması
-      private MotorControllerModule Motor_Controller;
-    
+    private MotorControllerModule Motor_Controller;
+    private ShooterModule Shooter_Module;
    public KeyboardAnalog(MotorControllerModule _Motor_Controller)
    {
         Motor_Controller = _Motor_Controller;
+        Shooter_Module = Motor_Controller.Shooter_Module;
         setSize(300, 200);
         setVisible(true);
          setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -35,6 +37,7 @@ public  class KeyboardAnalog  extends JFrame{
               Key_Board_Input();
           }
       });
+      
    }
      //Periodic Metot
      public void periodic_KeyListener()
@@ -102,9 +105,11 @@ public  class KeyboardAnalog  extends JFrame{
       else {
          Motor_Controller.Stop_Rotating();
       }
+      if(pressedKeys.contains(KeyEvent.VK_Q))  Shooter_Module.Shoot_Subsystem("Amp");
+      else if (pressedKeys.contains(KeyEvent.VK_E)) Shooter_Module.Shoot_Subsystem("Speaker");
+
     }
-
-
+    
     private double increaseSpeed(double currentSpeed) {
         return Math.min(currentSpeed + 0.05, 0.5d); // Maksimum hızı 1 olarak sınırla
     }

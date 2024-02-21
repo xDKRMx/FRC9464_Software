@@ -34,9 +34,9 @@ public  class MotorControllerModule {
      //Bu class'deki fonksiyonların ve  bir çok değişkeninin public olarak tanımlanması veya OOP(Object oriented) mantığı ile encapsulation olarak tanımlanmış olması kodun ilerleyişi açısından daha iyi olur.
     /************************************************** */ 
     //Ek modüllerin tanımlaması
-    KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     public SensorIntegrationModule Sensor_Integration = new  SensorIntegrationModule(this);
     public ShooterModule Shooter_Module = new  ShooterModule();
+    KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     //Robotun durumu
     public RobotStatus robot_Status;
     // Motorların tanımlamaları

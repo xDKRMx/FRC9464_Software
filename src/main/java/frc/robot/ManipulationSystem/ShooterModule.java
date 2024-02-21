@@ -2,10 +2,6 @@ package frc.robot.ManipulationSystem;
 
 import com.revrobotics.CANSparkMax;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -22,14 +18,12 @@ public  class ShooterModule {
       //Atış yapacak motorların tanımlanması
       private CANSparkMax Shooter_Motor = new CANSparkMax(4, MotorType.kBrushless);
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
-      public Double Target_AMP_power = 0.2;
+      public Double Target_AMP_power = 0.4;
       public double Target_Speaker_Power = 1;
       private Double Current_Shooter_Power = 0d;
       //Atış işlemi için yapılan boolean kontrolleri
       private Boolean is_Shot_Fired;
       public boolean Ready_For_Shooting;
-      //Atış işlemi yapıldıktan sonraki asenkron gerçekleştirilecek işlemler için tanımlamalar
-      ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
      /*********** */
      //Constructor
      public ShooterModule()
@@ -60,48 +54,42 @@ public  class ShooterModule {
           if(Ready_For_Shooting)
           {
             //Robotun Notaya göre atacak motorlarını hazırlama
-            if(Shooting_Type == "Amp")   Shooter_Motor.set(Target_AMP_power);
-            else if(Shooting_Type == "Speaker") Shooter_Motor.set(Target_Speaker_Power);
+            if("Amp".equals(Shooting_Type))   Shooter_Motor.set(Target_AMP_power);
+            else if("Speaker".equals(Shooting_Type)) Shooter_Motor.set(Target_Speaker_Power);
              is_Shot_Fired = true;
-             Ready_For_Shooting = false;
+            // Ready_For_Shooting = false;
             SlowDown_Motor_Power();
             //Thread Executer  ile motorun gücü eşik değerin altına inene kadar sürekli olarak azaltılıyor
-            executorService.scheduleAtFixedRate(this::SlowDown_Motor_Power, 0, 100, TimeUnit.MILLISECONDS);
+          //   executorService.scheduleAtFixedRate(this::SlowDown_Motor_Power, 0, 100, TimeUnit.MILLISECONDS);
           }
      }
      //Robot, atış işlemini yaptıktan sonra atışı yapan shooter motorlarını yavaşlatmaya geçme algoritması
      public void SlowDown_Motor_Power()
      {
-          //Buradan mevcut atış motorunun gücünü çekip varolan gücü azaltma işemi uyguluyoruz
-          Current_Shooter_Power = Shooter_Motor.get();
-          if (is_Shot_Fired) {
-               Current_Shooter_Power =  Current_Shooter_Power > 0 ? Current_Shooter_Power - 0.05 : Current_Shooter_Power + 0.05d;
-               Shooter_Motor.set(Current_Shooter_Power);
-               if (Math.abs(Current_Shooter_Power) < 0.05) {
-                   stopShooting();
-                   executorService.shutdown();
+          Thread thread = new Thread(new Runnable() {
+               @Override
+               public void run() {
+                   while (!Thread.currentThread().isInterrupted()) {
+                           Current_Shooter_Power = Shooter_Motor.get();
+                         if (is_Shot_Fired) {
+                              Current_Shooter_Power =  Current_Shooter_Power > 0 ? Current_Shooter_Power - 0.05 : Current_Shooter_Power + 0.05d;
+                              Shooter_Motor.set(Current_Shooter_Power);
+                              if (Math.abs(Current_Shooter_Power) < 0.05) {
+                                  stopShooting();
+                                  Thread.currentThread().interrupt();
+                              }
+                              try {
+                                   Thread.sleep(50); // 50 milisaniye bekleme
+                               } catch (InterruptedException e) {
+                                   System.out.println(e);
+                               }
+                          }
+                   }
                }
-           }
-          // if(is_Shot_Fired)
-          // {
-          //   
-            
-          //   while(Math.abs(Current_Shooter_Power ) > 0.1) 
-          //   {
-          //     SmartDashboard.putNumber("SHOOTER MOTOR ",Current_Shooter_Power);
-          //     if(Current_Shooter_Power > 0) Current_Shooter_Power -= 0.1;
-          //     else if(Current_Shooter_Power < 0) Current_Shooter_Power += 0.1;
-          //     Shooter_Motor.set(Current_Shooter_Power);
-          //      try {
-          //      Thread.sleep(100);
-          //      } catch (InterruptedException e) {
-          //           // TODO Auto-generated catch block
-          //           e.printStackTrace();
-          //      }
-          //   }
-          //   //eşik değer altına indiğinde motor gücünü direkt sıfırla
-          //   if(Math.abs(Current_Shooter_Power ) < 0.05) stopShooting();
-          // }
+           });
+       
+           thread.start(); // Thread'i başlat
+           
      }
      //atış motorunu sıfırlama işlemi
      public void stopShooting() {
