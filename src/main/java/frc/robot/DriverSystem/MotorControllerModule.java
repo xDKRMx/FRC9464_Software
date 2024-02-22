@@ -35,7 +35,7 @@ public  class MotorControllerModule {
     /************************************************** */ 
     //Ek modüllerin tanımlaması
     public SensorIntegrationModule Sensor_Integration = new  SensorIntegrationModule(this);
-    public ShooterModule Shooter_Module = new  ShooterModule();
+    public ShooterModule Shooter_Module = new  ShooterModule(this);
     KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     //Robotun durumu
     public RobotStatus robot_Status;

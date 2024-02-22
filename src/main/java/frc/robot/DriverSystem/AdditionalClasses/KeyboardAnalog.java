@@ -96,15 +96,16 @@ public  class KeyboardAnalog  extends JFrame{
        if(pressedKeys.contains(KeyEvent.VK_RIGHT))
       {
        
-        Motor_Controller.Rotate_Robot(1d,true);
+        Motor_Controller.Rotate_Robot(1d,false);
         
       }else if(pressedKeys.contains(KeyEvent.VK_LEFT))
       {
-        Motor_Controller.Rotate_Robot(1d,false);
+        Motor_Controller.Rotate_Robot(1d,true);
       }
       else {
          Motor_Controller.Stop_Rotating();
       }
+
       if(pressedKeys.contains(KeyEvent.VK_Q))  Shooter_Module.Shoot_Subsystem("Amp");
       else if (pressedKeys.contains(KeyEvent.VK_E)) Shooter_Module.Shoot_Subsystem("Speaker");
 

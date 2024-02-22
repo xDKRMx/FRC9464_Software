@@ -1,8 +1,8 @@
 package frc.robot.ManipulationSystem;
 
 import com.revrobotics.CANSparkMax;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.DriverSystem.MotorControllerModule;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
@@ -15,6 +15,7 @@ public  class ShooterModule {
      //Bu clas içerisinde sadece teleop mod için değil aynı zaman autonomous mod için de kod yazmamız gerekecek
      /*****************/
       //Ek modüllerin tanımlaması
+      private MotorControllerModule Motor_Control_Module;
       //Atış yapacak motorların tanımlanması
       private CANSparkMax Shooter_Motor = new CANSparkMax(4, MotorType.kBrushless);
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
@@ -24,10 +25,13 @@ public  class ShooterModule {
       //Atış işlemi için yapılan boolean kontrolleri
       private Boolean is_Shot_Fired;
       public boolean Ready_For_Shooting;
+      //Robotun notay sahip olup olmama kontrolü
+      public Boolean Is_Note_Entried;
      /*********** */
      //Constructor
-     public ShooterModule()
+     public ShooterModule(MotorControllerModule _Motor_Control_Module)
      {
+          Motor_Control_Module = _Motor_Control_Module;
           Shooter_Init();
      }
      //Bu modülde ilk başta yapılacak şey notayı robotun motorlarla atma işlemini yapmak
@@ -44,9 +48,28 @@ public  class ShooterModule {
      }
      public void Shooter_Periodic()
      {
-         
           SmartDashboard.putNumber("Shooter Motor power : ", Current_Shooter_Power);
+          Replacing_Note_Control();
      }
+     /* | Region : Notayı Çekme Algoritması |*/
+     //Robotumuz da Intake sistemi olmadığı için bizim robota notayı koyabilmemizin tek çaresi robotun kaynal noktasına gidip oradan player tarafından içine nota koyulması
+     //Biz robotumuzun içerisinde nota olup olmadığı kontrol etmeliyiz aksi takdirde robotumuz boş yere atış motorunu her defasında çağırır
+     //Bunu yapmanın iki seçeneği var : // Birincisi robotun notayı aldığını notanın yerleşeceği yerleşke kısmına touch sensörü koyarak nota içeri girdiğinde onu tetiklemek
+     //İlk alternatifte oluşabilecek temazsızlık sıkıntılarına çare olarak ikinci alternatifte Ultrasonic koyarak  direkt robotun notayı alıp almadığını sensörden gelen ses dalgalarının notaya çarpmasıyla algılayacağız
+      public void Replacing_Note_Control()
+      {
+       Is_Note_Entried = Motor_Control_Module.Sensor_Integration.Note_Touch_Control();
+       // |* İkinci Alternatif *| nota algılama alternatifi Ultrasonic sensörü ile algılama
+       //double Note_Distance = Motor_Control_Module.Sensor_Integration.Robot_Get_Distance();
+       //Is_Note_Entried = (Note_Distance < 0.3) ? true : false;
+
+       Ready_For_Shooting = Is_Note_Entried ? true : false;
+      }
+
+     /* | End Region : Notayı Çekme Algoritması |*/
+
+
+     /* | Region : Notayı shoot etme sistemi  |*/
      //Joystick üzerinden nasılan L1 veya R1 düğmesine göre buradaki atış işlemi gerçekleşecek
      public void Shoot_Subsystem(String Shooting_Type )
      {
@@ -57,10 +80,10 @@ public  class ShooterModule {
             if("Amp".equals(Shooting_Type))   Shooter_Motor.set(Target_AMP_power);
             else if("Speaker".equals(Shooting_Type)) Shooter_Motor.set(Target_Speaker_Power);
              is_Shot_Fired = true;
+             /* */
             // Ready_For_Shooting = false;
+            /* */
             SlowDown_Motor_Power();
-            //Thread Executer  ile motorun gücü eşik değerin altına inene kadar sürekli olarak azaltılıyor
-          //   executorService.scheduleAtFixedRate(this::SlowDown_Motor_Power, 0, 100, TimeUnit.MILLISECONDS);
           }
      }
      //Robot, atış işlemini yaptıktan sonra atışı yapan shooter motorlarını yavaşlatmaya geçme algoritması
@@ -96,5 +119,6 @@ public  class ShooterModule {
           Current_Shooter_Power = 0d;
           Shooter_Motor.set(0.0);
           is_Shot_Fired = false;
-      }
+     }
+     /* | End Region : Notayı shoot etme sistemi  |*/
 }
