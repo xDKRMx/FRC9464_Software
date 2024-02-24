@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import frc.robot.DriverSystem.MotorControllerModule;
 import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
 import frc.robot.ManipulationSystem.ShooterModule;
+import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
 
 public  class KeyboardAnalog  extends JFrame{
     // POWER DEĞERLERİ 
@@ -108,7 +109,10 @@ public  class KeyboardAnalog  extends JFrame{
 
       if(pressedKeys.contains(KeyEvent.VK_Q))  Shooter_Module.Shoot_Subsystem("Amp");
       else if (pressedKeys.contains(KeyEvent.VK_E)) Shooter_Module.Shoot_Subsystem("Speaker");
-
+      else 
+      {
+          if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic)  Shooter_Module.SlowDown_Motor_Power();
+      }
     }
     
     private double increaseSpeed(double currentSpeed) {

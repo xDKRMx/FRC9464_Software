@@ -238,7 +238,6 @@ public  class SensorIntegrationModule  {
                       }
                       // Burada 100 milisaniye bekleme zaten yapıldığı için ekstra bir Thread.sleep(100) çağrısına gerek yok
                   } catch (InterruptedException e) {
-                      System.out.println("Thread kesintiye uğradi, döngü sona eriyor.");
                       Thread.currentThread().interrupt(); // Kesinti durumunu koru
                       break; // Döngüyü sonlandır
                   }

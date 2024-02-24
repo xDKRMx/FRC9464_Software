@@ -1,9 +1,12 @@
 package frc.robot.DriverSystem;
 
+import javax.swing.text.html.parser.Element;
+
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
 import frc.robot.ManipulationSystem.ShooterModule;
+import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
 
 //Simülasyonu bilgisayarda yapabilmek için klavye analog ataması
 public  class InputProcessingModule {
@@ -101,6 +104,10 @@ public  class InputProcessingModule {
         {
           if(Active_button==5) Shooter_Module.Shoot_Subsystem("Amp");
           else if(Active_button==6)  Shooter_Module.Shoot_Subsystem("Speaker");
+          else 
+          {
+            if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power();
+          }
         }
 
        /*| End Region : JOYSTICK DÜĞME İŞLEME| */
