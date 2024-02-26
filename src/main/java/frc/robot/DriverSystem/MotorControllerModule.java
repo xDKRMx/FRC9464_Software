@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
 import frc.robot.DriverSystem.AdditionalClasses.KeyboardAnalog;
 import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
+import frc.robot.ManipulationSystem.ClimberModule;
 import frc.robot.ManipulationSystem.ShooterModule;
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
@@ -35,6 +36,7 @@ public  class MotorControllerModule {
     //Ek modüllerin tanımlaması
     public SensorIntegrationModule Sensor_Integration = new  SensorIntegrationModule(this);
     public ShooterModule Shooter_Module = new  ShooterModule(this);
+    public ClimberModule Climber_Module = new  ClimberModule(this);
     KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     //Robotun durumu
     public RobotStatus robot_Status;
@@ -143,11 +145,19 @@ public  class MotorControllerModule {
 
       /* | End Region : MOTOR VERİLERİ ÇEKME  |*/
 
-
+    
      /***************************/
+     /*|region : MOTOR VERİLERİ SET ETME  |*/
+     public void Set_Power(Double Motor1, Double Motor2)
+     {
+      Power_Of_Each_Motors.set(0, Motor1);
+      Power_Of_Each_Motors.set(1, Motor2);
+     }
+     /*|End region : MOTOR VERİLERİ SET ETME  |*/
+
      /*|region : CAN MOTOR KONTROL  |*/
 
-
+   
      /*|Title : TELOP MOTOR KISMI  |*/
      // Periodic Metot // Hem Teleoperation hem de Autonomous için kullanılabilir 
      public void Follow_Periodic()
@@ -546,6 +556,7 @@ public  class MotorControllerModule {
          //UltraSonic sensörden alınan verilerde istenilen koşul sağlanırsa buradaki manevra işlemi gerçekleşecek
          if(manoeuvre)
          {
+          System.out.println(Current_Distance + " deneme");
            //Manevra sisteminde robotun durumuna göre 3 farklı durum söz konusudur
             if(Current_Distance < Limit_Distance && Angle_Difference < 15)
            {

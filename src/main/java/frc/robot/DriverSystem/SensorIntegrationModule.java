@@ -14,6 +14,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 
 public  class SensorIntegrationModule  {
+     
       //Bu class Motor Controller ve Input Processing Modüllerindeki işlemlerin devamı niteliğindedir
       //Not: bu Class'i geliştirmeye başladığımız zaman bir daha MotorControllerModule veya InputProcessingModule'lerine geri dönmeyeceğiz gibi algılanmasın. Burada çakışan kodlar olursa her türlü iyileştirilmeler yapılacaktır
      // Bu kodun temel işlevi Robotun sahip olduğu sensörlerin tanımlanması ve bu sensötlerle yapılacak alası basit algoritmaların gereksiz yere Robot.Java üzerinden tanımlanması yerimne burada tanımlanacak
@@ -198,6 +199,9 @@ public  class SensorIntegrationModule  {
       Float[] Axis_Velocity = {veloX, veloY, veloZ};
       return Axis_Velocity;
     }
+      public Float get_Height(){
+      return ahrs.getDisplacementZ();
+    }
     public float get_Magnetic_Heading(){
       return ahrs.getCompassHeading();
     }
@@ -219,32 +223,6 @@ public  class SensorIntegrationModule  {
       //cm cinsinden birim
       double voltage_scale_factor = 5/RobotController.getVoltage5V();
       return raw_Value * voltage_scale_factor * 0.125;   
-    }
-
-    public void Closer_rate() {
-      Thread thread = new Thread(new Runnable() {
-          @Override
-          public void run() {
-              while (!Thread.currentThread().isInterrupted()) {
-                  try {
-                      double dist1 = Robot_Get_Distance();
-                      Thread.sleep(100); // 100 milisaniye beklet
-                      double dist2 = Robot_Get_Distance();
-                      double closure_rate = 0;
-                      if (dist1 - dist2 < 60) {
-                          closure_rate = (dist1 - dist2) / 10;
-                      } else {
-                          closure_rate = 0;
-                      }
-                      // Burada 100 milisaniye bekleme zaten yapıldığı için ekstra bir Thread.sleep(100) çağrısına gerek yok
-                  } catch (InterruptedException e) {
-                      Thread.currentThread().interrupt(); // Kesinti durumunu koru
-                      break; // Döngüyü sonlandır
-                  }
-              }
-          }
-      });
-      thread.start(); // Thread'i başlat
     }
 
     //Touch Sensürünü kullanarak notanın robota yerleşke bölümüne girip girmediğinin kontrolünü yapıyoruz.

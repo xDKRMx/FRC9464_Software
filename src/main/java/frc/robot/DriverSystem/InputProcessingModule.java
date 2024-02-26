@@ -1,7 +1,5 @@
 package frc.robot.DriverSystem;
 
-import javax.swing.text.html.parser.Element;
-
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
@@ -49,6 +47,8 @@ public  class InputProcessingModule {
            PID_Motor_Speed();
            //Rotate kontrol
            Rotate_Control();
+           //Intake Kontrolü
+           Take_Note();
            //Shoot kontrolü
             Shoot_Note();
          }
@@ -97,6 +97,15 @@ public  class InputProcessingModule {
           //Negatif yön
           else if(L1_Input < 0.1 && R1_Input > 0.1)Motor_Controller_Module.Rotate_Robot(R1_Input,false);
           else Motor_Controller_Module.Stop_Rotating();
+        }
+        //Notayı almak için intake sistemi (Yerden değil, yukarıdaki kısımdan)
+        public void Take_Note()
+        {
+          if(Active_button==4) Shooter_Module.Intaking_Note();
+          else 
+          {
+            Shooter_Module.SlowDown_Motor_Power();
+          }
         }
 
         //Shooting Sistemi (L1 için atış AMP'ye, R1 için atış Hopörlöre yapılır) 

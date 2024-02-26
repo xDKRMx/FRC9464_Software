@@ -33,7 +33,7 @@ public TelemetryModule Telemetry_Class = new  TelemetryModule(Motor_Controller_C
 // *************************************************//
  /* Header : Manipulation Sytem Class'leri ve Interfaceleri */
 // public ShooterModule Shooter_Class = new  ShooterModule();
-public ClimberModule Climber_Class = new  ClimberModule();
+public ClimberModule Climber_Class = new  ClimberModule(Motor_Controller_Class);
 public ElevatorModule Elavator_Class = new  ElevatorModule();
 
  // *************************************************//

@@ -21,7 +21,7 @@ public  class ShooterModule {
      // Burada yapılacak algoritmalar genellikle sapmanın minimalize edilmesi için PIDcontroller kullanılarak oluşturulabilir.
      //Bu clas içerisinde sadece teleop mod için değil aynı zaman autonomous mod için de kod yazmamız gerekecek
      /*****************/
-     //Robotun motorlarının Duruöu
+     //Robotun motorlarının Durumu
      public ShooterMotorStatus Shooter_Status = ShooterMotorStatus.Static;
       //Ek modüllerin tanımlaması
       private MotorControllerModule Motor_Control_Module;
@@ -70,6 +70,14 @@ public  class ShooterModule {
      //Biz robotumuzun içerisinde nota olup olmadığı kontrol etmeliyiz aksi takdirde robotumuz boş yere atış motorunu her defasında çağırır
      //Bunu yapmanın iki seçeneği var : // Birincisi robotun notayı aldığını notanın yerleşeceği yerleşke kısmına touch sensörü koyarak nota içeri girdiğinde onu tetiklemek
      //İlk alternatifte oluşabilecek temazsızlık sıkıntılarına çare olarak ikinci alternatifte Ultrasonic koyarak  direkt robotun notayı alıp almadığını sensörden gelen ses dalgalarının notaya çarpmasıyla algılayacağız
+      public void Intaking_Note()
+      {
+         Shooter_Motor1.set(-0.5);
+         Shooter_Motor2.set(-0.5);
+         is_Shot_Fired = true;
+         Shooter_Status = ShooterMotorStatus.Dynamic;
+
+      }
       public void Replacing_Note_Control()
       {
        Is_Note_Entried = Motor_Control_Module.Sensor_Integration.Note_Touch_Control();
@@ -115,36 +123,39 @@ public  class ShooterModule {
           Thread thread = new Thread(new Runnable() {
                @Override
                public void run() {
+                    
                     //Thread kullanarak bu işlemin asenkron bir şekilde yapılmasını sağlayacağız. Bu sayede robot hareket ederken bir yanda da atış yapıp bir yandan da notayı fırlattıktan sonra motoru durdurabilecek
                     if(Shooter_Status == ShooterMotorStatus.Dynamic)
                     {
                         while (!Thread.currentThread().isInterrupted()) {
                         Shooter_Status = ShooterMotorStatus.Static;
                         Current_Shooter_Power = Shooter_Motor1.get();
-                        // PID denetleyicisi oluşturup buradaki katsayılar üzerinden motorları yavaşlatacağız
-                        PIDController pidController1 = new PIDController(0.2, 0.05, 0.01);
-                        // Setpoint'i 0 olarak ayarlama
-                        pidController1.setSetpoint(0.0);
-                        pidController1.setSetpoint(0.0);
-                        if (is_Shot_Fired) {
-                         // PID çıktısını hesaplayın
-                         double output = pidController1.calculate(Current_Shooter_Power);
-                         //Current_Shooter_Power1 =  Current_Shooter_Power1 > 0 ? Current_Shooter_Power1 - 0.05 : Current_Shooter_Power1 + 0.05d;
-                         //Current_Shooter_Power2 =  Current_Shooter_Power2 > 0 ? Current_Shooter_Power2 - 0.05 : Current_Shooter_Power2 + 0.05d;
-                         //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
-                         Shooter_Motor1.set(output);
-                         Shooter_Motor2.set(output);
-                         //Eşik değerin altında bir güçte iken motorlar daha fazla bekletmeyip direkt durduruyoruz
-                         if (Math.abs(Current_Shooter_Power) < 0.05) {
-                             stopShooting();
-                             Thread.currentThread().interrupt();
-                         }
-                         try {
-                              Thread.sleep(50); // 50 milisaniye bekleme
-                          } catch (InterruptedException e) {
-                              Thread.currentThread().interrupt();
-                         }
-                        }
+                        try (// PID denetleyicisi oluşturup buradaki katsayılar üzerinden motorları yavaşlatacağız
+                              PIDController pidController1 = new PIDController(0.2, 0.05, 0.01)) {
+                             // Setpoint'i 0 olarak ayarlama
+                             pidController1.setSetpoint(0.0);
+                             pidController1.setSetpoint(0.0);
+                             if (is_Shot_Fired) {
+                              // PID çıktısını hesaplayın
+                              double output = pidController1.calculate(Current_Shooter_Power);
+                              System.out.println(output + " OUTPUT");
+                              //Current_Shooter_Power1 =  Current_Shooter_Power1 > 0 ? Current_Shooter_Power1 - 0.05 : Current_Shooter_Power1 + 0.05d;
+                              //Current_Shooter_Power2 =  Current_Shooter_Power2 > 0 ? Current_Shooter_Power2 - 0.05 : Current_Shooter_Power2 + 0.05d;
+                              //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
+                              Shooter_Motor1.set(output);
+                              Shooter_Motor2.set(output);
+                              //Eşik değerin altında bir güçte iken motorlar daha fazla bekletmeyip direkt durduruyoruz
+                              if (Math.abs(Current_Shooter_Power) < 0.05) {
+                                  stopShooting();
+                                  Thread.currentThread().interrupt();
+                              }
+                              try {
+                                   Thread.sleep(50); // 50 milisaniye bekleme
+                               } catch (InterruptedException e) {
+                                   Thread.currentThread().interrupt();
+                              }
+                             }
+                    }
                       }
                     }  
                }
