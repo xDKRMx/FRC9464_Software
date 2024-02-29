@@ -90,6 +90,13 @@ public  class InputProcessingModule {
 
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {
+          //Joystick 1'de trigger'ın basılıp basılmamasına göre döndürme
+          // if(Active_button == 7) Motor_Controller_Module.Rotate_Robot(1,true);
+          // //Negatif yön
+          // else if(Active_button == 8)Motor_Controller_Module.Rotate_Robot(1,false);
+          // else Motor_Controller_Module.Stop_Rotating();
+
+          //Joystick 2'de triggerın basılma oranına göre döndürme
           double L1_Input = Joystick.getRawAxis(2);
           double R1_Input = Joystick.getRawAxis(3);
           // Pozitif yön

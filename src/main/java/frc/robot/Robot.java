@@ -84,7 +84,7 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
      //Tanımlanan değişkenleri Smart Dashboard'a gönderme işlemi
      Telemetry_Class.Updating_Variables_Smart_Dashboard();
      //Shooter sisteminin periyodik olarak çağırılma işlemi
-     Motor_Controller_Class.Shooter_Module.Shooter_Periodic();
+      Motor_Controller_Class.Shooter_Module.Shooter_Periodic();
   }
 
   @Override

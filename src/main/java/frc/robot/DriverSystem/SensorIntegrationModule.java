@@ -5,8 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.RobotController;
 
@@ -29,8 +29,8 @@ public  class SensorIntegrationModule  {
      private CANSparkMax Right_Leader;
      /*Sensör Tanımlamaları*/
      //Encoder Tanımalaması
-      private RelativeEncoder leftEncoder;
-     private  RelativeEncoder rightEncoder;
+      private AbsoluteEncoder leftEncoder;
+     private  AbsoluteEncoder rightEncoder;
      // navX tanımlaması
      private AHRS ahrs;
      
@@ -105,8 +105,8 @@ public  class SensorIntegrationModule  {
     //Bu fonksiyon bizim robotumuzun motorlarında kullanacağımız Encoder'la bu sensör entegrasyonunda kullanacağımız Encoder'ı birbiriyle eşleştiriyor bu sayede Encoder sensörü ile şlem yaparken bir sıkıntı yaşamayacağız
     void Encoder_Match()
     {
-       leftEncoder = Left_Leader.getEncoder();
-       rightEncoder = Right_Leader.getEncoder();
+       //leftEncoder = Left_Leader.getEncoder();
+      // rightEncoder = Right_Leader.getEncoder();
     }
     /*|Title : Robotun X ve Y eksenlerindeki Yer değiştirmesini hesaplama|*/
     public Pose2d Robot_Init_Position()

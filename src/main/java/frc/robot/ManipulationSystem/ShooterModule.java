@@ -26,8 +26,8 @@ public  class ShooterModule {
       //Ek modüllerin tanımlaması
       private MotorControllerModule Motor_Control_Module;
       //Atış yapacak motorların tanımlanması
-      private CANSparkMax Shooter_Motor1 = new CANSparkMax(4, MotorType.kBrushless);
-      private CANSparkMax Shooter_Motor2 = new CANSparkMax(5, MotorType.kBrushless);
+     //  private CANSparkMax Shooter_Motor1 = new CANSparkMax(4, MotorType.kBrushless);
+     //  private CANSparkMax Shooter_Motor2 = new CANSparkMax(5, MotorType.kBrushless);
       
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
       public Double Target_AMP_power = 0.3;
@@ -51,10 +51,12 @@ public  class ShooterModule {
      void Shooter_Init()
      {
           // Fabrika ayarlarına dön
-          Shooter_Motor1.restoreFactoryDefaults(); 
-          Shooter_Motor1.setSmartCurrentLimit(40); 
-          Shooter_Motor2.restoreFactoryDefaults();
-          Shooter_Motor2.setSmartCurrentLimit(40); 
+           /*ROBOTUN DEPLOY EDERKEN SPARK hatası vermemesi için spark max  ile alakalı olan kodlar yorum satırına alınd */
+            /****** */
+          // Shooter_Motor1.restoreFactoryDefaults(); 
+          // Shooter_Motor1.setSmartCurrentLimit(40); 
+          // Shooter_Motor2.restoreFactoryDefaults();
+          // Shooter_Motor2.setSmartCurrentLimit(40); 
           //Bu boolean Ultrasonic sistem ile veya Touch sensör ile Notanın robotun içine geçtiğinde çalışarak robotun notaya sahip olduğunu belirtir
           //Bu işlem yapılana kadar şimdilik int kısmında boolean değeri true olacaktır
           Ready_For_Shooting = true;
@@ -62,7 +64,6 @@ public  class ShooterModule {
      }
      public void Shooter_Periodic()
      {
-          SmartDashboard.putNumber("Shooter Motor power1 : ", Shooter_Motor1.get());
           Replacing_Note_Control();
      }
      /* | Region : Notayı Çekme Algoritması |*/
@@ -72,8 +73,8 @@ public  class ShooterModule {
      //İlk alternatifte oluşabilecek temazsızlık sıkıntılarına çare olarak ikinci alternatifte Ultrasonic koyarak  direkt robotun notayı alıp almadığını sensörden gelen ses dalgalarının notaya çarpmasıyla algılayacağız
       public void Intaking_Note()
       {
-         Shooter_Motor1.set(-0.5);
-         Shooter_Motor2.set(-0.5);
+     //     Shooter_Motor1.set(-0.5);
+     //     Shooter_Motor2.set(-0.5);
          is_Shot_Fired = true;
          Shooter_Status = ShooterMotorStatus.Dynamic;
 
@@ -102,15 +103,13 @@ public  class ShooterModule {
             //Robotun Notaya göre atacak motorlarını hazırlama
             if("Amp".equals(Shooting_Type)) 
             {
-             Shooter_Motor1.set(Target_AMP_power);
-             Shooter_Motor2.set(Target_AMP_power);
-              System.out.println("AMP : " +  Shooter_Motor1.get() );
+          //    Shooter_Motor1.set(Target_AMP_power);
+          //    Shooter_Motor2.set(Target_AMP_power);
             } 
             else if("Speaker".equals(Shooting_Type))
             {
-              Shooter_Motor1.set(Target_Speaker_Power);
-              Shooter_Motor2.set(Target_Speaker_Power);
-               System.out.println("Speaker : " +  Shooter_Motor1.get() );
+          //     Shooter_Motor1.set(Target_Speaker_Power);
+          //     Shooter_Motor2.set(Target_Speaker_Power);
             } 
              is_Shot_Fired = true;
             
@@ -129,7 +128,7 @@ public  class ShooterModule {
                     {
                         while (!Thread.currentThread().isInterrupted()) {
                         Shooter_Status = ShooterMotorStatus.Static;
-                        Current_Shooter_Power = Shooter_Motor1.get();
+                    //     Current_Shooter_Power = Shooter_Motor1.get();
                         try (// PID denetleyicisi oluşturup buradaki katsayılar üzerinden motorları yavaşlatacağız
                               PIDController pidController1 = new PIDController(0.2, 0.05, 0.01)) {
                              // Setpoint'i 0 olarak ayarlama
@@ -142,8 +141,8 @@ public  class ShooterModule {
                               //Current_Shooter_Power1 =  Current_Shooter_Power1 > 0 ? Current_Shooter_Power1 - 0.05 : Current_Shooter_Power1 + 0.05d;
                               //Current_Shooter_Power2 =  Current_Shooter_Power2 > 0 ? Current_Shooter_Power2 - 0.05 : Current_Shooter_Power2 + 0.05d;
                               //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
-                              Shooter_Motor1.set(output);
-                              Shooter_Motor2.set(output);
+                              // Shooter_Motor1.set(output);
+                              // Shooter_Motor2.set(output);
                               //Eşik değerin altında bir güçte iken motorlar daha fazla bekletmeyip direkt durduruyoruz
                               if (Math.abs(Current_Shooter_Power) < 0.05) {
                                   stopShooting();
@@ -167,8 +166,8 @@ public  class ShooterModule {
      //atış motorunu sıfırlama işlemi
      public void stopShooting() {
           Current_Shooter_Power = 0d;
-          Shooter_Motor1.set(0.0);
-          Shooter_Motor2.set(0.0);
+          // Shooter_Motor1.set(0.0);
+          // Shooter_Motor2.set(0.0);
           is_Shot_Fired = false;
      }
      /* | End Region : Notayı shoot etme sistemi  |*/

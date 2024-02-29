@@ -39,13 +39,13 @@ public  class TelemetryModule {
       public void Updating_Variables_Smart_Dashboard()
       {
         // Motor çıkışlarını simülasyon modeline uygula
-         ArrayList<Double> Leader_Motors = _Motor_Controller.Get_Power_Of_Each_Motors() ;
+         ArrayList<Double> Leader_Motors = _Motor_Controller.Get_Motor_Power_List() ;
         drivetrainSimulator.setInputs(Leader_Motors.get(0) * RobotController.getInputVoltage(), Leader_Motors.get(1) * RobotController.getInputVoltage()); // 12.0, motorların maksimum voltajını temsil eder.
         // Simülasyonu güncelle
         drivetrainSimulator.update(0.02); // 20 ms zaman adımı
         // Simülasyondan alınan robot pozisyonu SmartDashboard'a gönderilir.
         //Motorların hız değerlerini çekiyoruz
-         ArrayList<Double> Powers = _Motor_Controller.Get_Power_Of_Each_Motors();
+         ArrayList<Double> Powers = _Motor_Controller.Get_Motor_Power_List();
           //Aldığımız verileri Smart Dashboard'a yansıtıyoruz
          SmartDashboard.putNumber("Left motor POWER ", Powers.get(0));
          SmartDashboard.putNumber("Right motor POWER ", Powers.get(1));

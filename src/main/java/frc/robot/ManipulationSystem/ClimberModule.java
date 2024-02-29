@@ -46,6 +46,8 @@ public  class ClimberModule {
          if(Climbing_Started == false) 
          {
           Climbing_Started = true;
+           /*ROBOTUN DEPLOY EDERKEN SPARK hatası vermemesi için spark max  ile alakalı olan kodlar yorum satırına alınd */
+            /****** */
           //Sensör entegrasyon modülündeki Navx Sensörünü kullanarak robotun zincire çıkmadan önceki açı değerlerini kontrol ediyoruz 
           //Eğer ki robot yukarı doğru Teleskobik kol ile yukarı çıkarken dengesinde sapma yaşarsa biz bu sapmayı açı cinsinden yaklayacağımız için bir karşılaştırma yapmamız lazım ve buradan çıkacak değerler de robotun dengesindeki sapmayı gösterecek
           Initial_Axis_Angles = Motor_Control_Module.Sensor_Integration.Three_Axis_Rotation();
@@ -64,6 +66,8 @@ public  class ClimberModule {
           }
           else
           {
+             /*ROBOTUN DEPLOY EDERKEN SPARK hatası vermemesi için spark max  ile alakalı olan kodlar yorum satırına alınd */
+            /****** */
              //  Telescobic_Motor.setIdleMode(IdleMode.kBrake);
             //   Telescobic_Motor.set(0);
           }
@@ -89,7 +93,7 @@ public  class ClimberModule {
        if(Math.abs(Current_Deviation[a] ) >Limit_Deviation)
        {
         Double Balance_Power =  Limit_Deviation / Current_Deviation[a]  ;
-        Motor_Control_Module.Set_Power(-Balance_Power, -Balance_Power);
+        Motor_Control_Module.Set_Power(-Balance_Power);
         Motor_Control_Module.robot_Status = RobotStatus.TURNING;
        }
        else
