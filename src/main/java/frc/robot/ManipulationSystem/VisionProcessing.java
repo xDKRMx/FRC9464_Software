@@ -14,6 +14,9 @@ public  class VisionProcessing
   private static NetworkTableEntry ta;
   private static NetworkTableEntry camMode;
   private static NetworkTableEntry ledMode;
+  private static NetworkTableEntry tvert;
+  private static NetworkTableEntry thor;
+
 
   //enum lar  limelight sensörünün farklı modelarını ve fonkisyonlarını kontrol etmeye yarıyor. içerisinde iki fonksiyondan ilki ledin nasıl çalışacağını belirliyor. İkincisi ise mod verisi çekiyor. 
   private enum LEDMode 
@@ -43,7 +46,7 @@ public  class VisionProcessing
     private int value;
     private CamMode(int value)
     {
-      this.value = modeVal;
+      this.value = value;
     }
     private int getValue() {
       return this.value;
@@ -59,14 +62,26 @@ public  class VisionProcessing
     ta = table.getEntry("ta"); // hedef alan (0% of image to 100% of image).
     ledMode = table.getEntry("ledMode"); // sensörün led durumu (0-3).
     camMode = table.getEntry("camMode"); // sensörün çalışma modu (0-1).
+    tvert = table.getEntry("tvert");// algılanan cismin sınırlayıcı kutusunun dikey boyu
+    thor = table.getEntry("thor");// algılanan cismin sınırlayıcı kutusunun yatay boyu
   }
 
+  public boolean hasValidTarget(){
+    return tv.getBoolean(false);
+  }
+  public double getBoundingBoxHeight(){
+    return tvert.getDouble(0);
+  }
+
+  public double getBoundingBoxWitdh(){
+    return thor.getDouble(0);
+  }
   public double getTargetOffsetX() {
     return tx.getDouble(0.0);
   }
 
   public double getTargetOffsetY() {
-    return tx.getDouble(0.0);
+    return ty.getDouble(0.0);
   }
 
   public double getTargetArea() {
@@ -89,29 +104,26 @@ public  class VisionProcessing
   // görüntü işlemeyi başlatma fonksiyonu -kamerayı görüntü işlemek için hazırlar-
   public void setModeVision() {
       // Turn on LEDs and set camera for vision processing
-      setLEDMode(LEDMode.On);
-      setCamMode(CamMode.VisionProcessor);
+      setLEDMode(LEDMode.ON);
+      setCamMode(CamMode.VISION);
   }
   //
 
   // manuel kontrol sağlayan kod
   public void setModeDriver() {
       
-      setLEDMode(LEDMode.Off);
-      setCamMode(CamMode.DriverCamera);
+      setLEDMode(LEDMode.OFF);
+      setCamMode(CamMode.DRIVER);
   }
   //
 
   //sensörün hangi modda olduğu verisini çekecek fonksiyonlar. 
-  private boolean isModeDriver()
+  public boolean isModeDriver()
   {
-    return ledMode.getDouble(0.0) == LEDMode.OFF.modeValue && camMode.getDouble(0.0) == CamMode.DRIVER.modeValue;
+    return ledMode.getDouble(0.0) == 1d && camMode.getDouble(0.0) == 1d;
   }
-  private boolean isModeVision()
-  {
-    return ledMode.getDouble(0.0) == LEDMode.ON.modeValue && camMode.getDouble(0.0) == CamMode.VISION.modeValue;
-  }
-  //
+
+  
 
   //mod switchleme fonksiyonu
   public void toggleMode()
@@ -120,7 +132,7 @@ public  class VisionProcessing
     {
       this.setModeVision();
     }
-    else if (this.isModeVision())
+    else if (isModeDriver() == false)
     {
       this.setModeDriver();
     }
