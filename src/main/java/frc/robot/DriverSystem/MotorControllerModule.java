@@ -548,19 +548,19 @@ public  class MotorControllerModule {
             Current_Distance = Math.sqrt(X_difference * X_difference + Y_difference * Y_difference); 
          }
          //Obstacle noktası ile robotun bulunduğu konumun Pose2D karşılaştırması sonucu değerler limit değerlere uygun değilse manevra sistemine geçilsin
-         if( Current_Distance  != 0d && Current_Distance < Limit_Distance &&  Angle_Difference < 15) manoeuvre = true;
+         if( Current_Distance  != 0d && Current_Distance < Limit_Distance &&  Angle_Difference < 20) manoeuvre = true;
          //UltraSonic sensörden alınan verilerde istenilen koşul sağlanırsa buradaki manevra işlemi gerçekleşecek
          if(manoeuvre)
          {
           System.out.println(Current_Distance + " deneme");
            //Manevra sisteminde robotun durumuna göre 3 farklı durum söz konusudur
-            if(Current_Distance < Limit_Distance && Angle_Difference < 15)
+            if(Current_Distance < Limit_Distance && Angle_Difference < 20)
            {
              //Birinci durum olan bu koşul robotun hem limit mesafeden daha kısa bir mesafede ve baktığı açının da obstacle noktasına doğru olduğunu gösterir
              //bu durumdayken robotun dönmesi sağlanarak o noktaya çarpması engellenir
              Rotate_Robot(0.5d,true); 
            }
-           else if(Current_Distance < Limit_Distance && Angle_Difference > 15)
+           else if(Current_Distance < Limit_Distance && Angle_Difference > 20)
            {
              //İkinci durumda robotun bulunduğu nokta yine obstacle noktasının limit mesafesinden daha kısa ancak bu sefer robotun hareket doğrultusunda değil ise robotun bu sefer o noktadan kaçınmak için baktığı noktaya doğru ilerlemesi sağlanır
               Motor_Power_List.set(0, 0.5d);
