@@ -2,7 +2,6 @@ package frc.robot.DriverSystem;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.DriverSystem.MotorControllerModule.RobotStatus;
 import frc.robot.ManipulationSystem.ShooterModule;
 import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
 

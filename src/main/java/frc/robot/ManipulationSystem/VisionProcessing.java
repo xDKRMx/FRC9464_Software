@@ -122,9 +122,6 @@ public  class VisionProcessing
   {
     return ledMode.getDouble(0.0) == 1d && camMode.getDouble(0.0) == 1d;
   }
-
-  
-
   //mod switchleme fonksiyonu
   public void toggleMode()
   {

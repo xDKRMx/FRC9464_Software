@@ -44,7 +44,7 @@ public  class MotorControllerModule {
     //Robotun durumu
     public RobotStatus robot_Status;
     //Robotun durumunu mekaniksel değil de durumsal yapma işlemi 
-    public Boolean Situational;
+    public Boolean Situational = false;
     // Motorların tanımlamaları
     private  CANSparkMax Left_Leader = new CANSparkMax(1,MotorType.kBrushless);
      private  CANSparkMax Right_Leader = new CANSparkMax(2,MotorType.kBrushless);
