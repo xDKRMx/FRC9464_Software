@@ -53,7 +53,7 @@ public  class VisionProcessing
     }
   }
 
-  private VisionProcessing()
+  public VisionProcessing()
   {
     table = NetworkTableInstance.getDefault().getTable("limelight");
     tx = table.getEntry("tx"); // imleç ile hedef arasındaki yatay uzaklık (-29.8 to 29.8 degrees).
@@ -154,5 +154,14 @@ public  class VisionProcessing
   public void blinkLED()
   {
     this.setLEDMode(LEDMode.BLINK);
+  }
+
+  //Apriltaglerin algılanması için Scan işlemi 
+  public int Scan_Apriltag()
+  {
+    int Tag_Id = -1;
+    //Apriltag Algılama algoritması
+
+    return Tag_Id;
   }
 }

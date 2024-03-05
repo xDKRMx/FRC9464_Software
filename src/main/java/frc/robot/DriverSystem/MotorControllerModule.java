@@ -1,10 +1,12 @@
 package frc.robot.DriverSystem;
 
 
-
+import frc.robot.ManipulationSystem.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+
+import javax.lang.model.util.ElementScanner14;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -18,6 +20,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
 import frc.robot.ManipulationSystem.ClimberModule;
 import frc.robot.ManipulationSystem.ShooterModule;
+
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
 
@@ -36,9 +39,12 @@ public  class MotorControllerModule {
     public SensorIntegrationModule Sensor_Integration = new  SensorIntegrationModule(this);
     public ShooterModule Shooter_Module = new  ShooterModule(this);
     public ClimberModule Climber_Module = new  ClimberModule(this);
+    public VisionProcessing VisionProcessing = new  VisionProcessing();
    // KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     //Robotun durumu
     public RobotStatus robot_Status;
+    //Robotun durumunu mekaniksel değil de durumsal yapma işlemi 
+    public Boolean Situational;
     // Motorların tanımlamaları
     private  CANSparkMax Left_Leader = new CANSparkMax(1,MotorType.kBrushless);
      private  CANSparkMax Right_Leader = new CANSparkMax(2,MotorType.kBrushless);
@@ -181,8 +187,8 @@ public  class MotorControllerModule {
                double currentLeftInput = Motor_Power_List.get(0);
                double currentRightInput = Motor_Power_List.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
-               double Speed_Input = -joystick.getRawAxis(1);
-               double Rotate_Input = -joystick.getRawAxis(0);
+               double Speed_Input = joystick.getRawAxis(1);
+               double Rotate_Input = joystick.getRawAxis(0);
                //Eşik değer kontrolü
                if(Math.abs(Speed_Input) < 0.08)Speed_Input = 0;
                if(Math.abs(Rotate_Input) < 0.08)Rotate_Input = 0;
@@ -231,7 +237,7 @@ public  class MotorControllerModule {
             }
           
           }
-          else if(Motor_Power_Control == "PID")
+          else if(Motor_Power_Control == "Constant")
           {
             if(robot_Status != RobotStatus.TURNING)
             {
@@ -262,12 +268,93 @@ public  class MotorControllerModule {
        }
 
        public void Autonomous_Drive_Periodic() {
-         //  saniye ileri gitme ve setpoint belirleme
-           if (timer.get() < 2) {
-               // İleri git
-               Motor_Power_List.set(0, 0.5d);
-               Motor_Power_List.set(1, 0.5d);
+        /*OTONOMDA YAPILACAK İŞLEMLER */
+         // ilgili noktaya dönme, döndükten sonra hopörlöre atış işlemi ardından tekrar eski başlangıç açısına dönme
+           //eski başlangıç açısına yakın bir değere dönüp taksi yapma taksi yapılıp belli bir mesafe katedildikten sonra kendi ekseninde dönüp ilgili kaynak noktasının Apriltagini algılma 
+           //Kaynak noktasının apriltag'i algılandıktan sonra limelight dökümentasyonundaki mesafe ölçümü ile uzaklık bulunduktan sonra o uzaklğının birazcık daha az değeri ile robota gitmesi için bir setpoint noktası belirleyip oraya yöneltme
+           //Robotun her frame otonomdaki işlemleri matematiksel olarak değerlendirip onu koordinat sistemine göre değerlendireceğiz
+           Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
+           if (timer.get() <= 2) {
+               //Robotun varolan açısını bulma
+               CurrentAngle =Current_Point.getRotation().getDegrees();
+               //robotun o andaki mevcut açısı  -180 180 derece dışındaysa esas ölçüsü alınır
+               CurrentAngle %= 360;
+               if (CurrentAngle < 0) CurrentAngle += 360;
+
+               /*LIMELIGHT TAKILANA KADAR  BU KISIM YORUM SATIRINDA OLACAK*/
+               int Apriltag_Tag = VisionProcessing.Scan_Apriltag();
+               //Limelight'ın algıladığı apriltag'Lerin Hopörlöre ait olup olmadığını ID kontrolü yaparak karşılaştırıyoruz 
+               Boolean Tag_Percieved = (Apriltag_Tag == 2);
+               /* */
+               //Eğer ki algılanan tagin ID'si hopörlöre ait değilse o zaman höporlör ID'sini görene kadar döndür 
+               if(reached_Angle == false)
+               {
+                //Apriltag algılandığında target açıyı algıladığı andaki açı belirleme
+                if(Tag_Percieved)
+                 {
+                  reached_Angle = true;
+                  TargetAngle = CurrentAngle;
+                 }
+                 else
+                 {
+                    //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
+                    Rotate_Robot(0.5 , (CurrentAngle - TargetAngle) > 0 ? false : true );
+                 }
+               }
+               else
+               {
+                //Apriltag algılandıktan sonra aradaki açıda sapma yaşanacağı için tam olarak robotun notayı algılayacağı açıya sahip olması sağlanıyor
+                   if(Math.abs(CurrentAngle - TargetAngle) > 0.3d )
+                    {
+                      if( Initial_Angle_Difference==999d)
+                      {
+                        Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
+                      }
+                      double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) ;
+                      Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
+                    }
+                    else
+                   {
+                     Stop_Rotating();
+                     reached_Angle = false;
+                     Initial_Angle_Difference = 999d;
+                   }
+               }
            } 
+           else if(timer.get() > 2 && timer.get() <= 4)
+           {
+            //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
+            //Notanın robot içinde olup olmaması Touch sensörü ile kontrol ediliyor
+             boolean Note_In_Robot = Sensor_Integration.Note_Touch_Control();
+             if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker");
+             else Shooter_Module.SlowDown_Motor_Power();
+           }
+           else if(timer.get() > 4 && timer.get() < 6)
+           {
+               //Roobt dönüp notayı attıktan sonra eski açısına dönme işlemi
+               TargetAngle = 0;
+               //Robotun varolan açısını bulma
+               CurrentAngle =Current_Point.getRotation().getDegrees();
+               if(Math.abs(CurrentAngle - TargetAngle) > 3d )
+                {
+                  if( Initial_Angle_Difference==999d)
+                  {
+                    Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
+                  }
+                  double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) ;
+                  Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
+                }
+                else
+                {
+                     Stop_Rotating();
+                     Initial_Angle_Difference = 999d;
+                }
+           }
+           else if(timer.get() > 6 && timer.get() < 6.5)
+           {
+             //Robotun taksi yapma işlemi
+             Motor_Power_List.set(0,0.4);
+           }
            else {
                // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz
                //İlk başta robotumuzun default POSE2D class'ini kullanarak posizyon bilgilerini çekiyoruz
@@ -437,9 +524,11 @@ public  class MotorControllerModule {
         // Hem Teleop hem de Autonomous için kullanılabilir
         public void Rotate_Robot(double Turning_Speed,Boolean Positive_Rotation)
         {
-           //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
-              robot_Status = RobotStatus.TURNING;
+             //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
+              Robot_Status_Situational(1);
+              /*DEPLOYDA YORUM SATIRI */
               Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
+              /* */
               Motor_Power_List.set(1, Positive_Rotation ? Turning_Speed : -Turning_Speed);
         } 
         public void Stop_Rotating()
@@ -625,26 +714,20 @@ public  class MotorControllerModule {
             if(extensial)
             {
                Motor_Power_List.set(0,Motor_Power_List.get(0)-Extra_Difference) ;
-               Motor_Power_List.set(1,Motor_Power_List.get(1)+Extra_Difference) ;
             }
             else
             {
                Motor_Power_List.set(0,Motor_Power_List.get(0)+Extra_Difference) ;
-               Motor_Power_List.set(1,Motor_Power_List.get(1)-Extra_Difference) ;
             }
          }
        }
-       //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
-         void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
-        {
-            // Robotun durumunu kontrol et
-           if(robot_Status != RobotStatus.IDLE)
-           {
-           //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
-           robot_Status = RobotStatus.CONSTANTPOWER;
-           Motor_Power_List.set(0, Desired_Speed);
-         }
-        }
+      //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
+      void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
+      {
+         //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
+         Motor_Power_List.set(0, Desired_Speed);
+          Robot_Status_Situational(2);
+      }
       public ArrayList<Double> PID_parametres(double k_Proportional, double k_Integral, double k_derivative)
       {
         PID_Coefficients.set(0, k_Proportional) ;
@@ -654,9 +737,9 @@ public  class MotorControllerModule {
       }
        // ROBOTUN  MOTORLARINDAKİ HIZINA GÖRE MOTORUN BULUNDUĞU HALİ KONTROL EDİYORUZ
        //Periodic metot
-      public void Robot_Status_Control()
+      public void Robot_Status_Mechanical()
       {
-        if( robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
+        if(Situational == false)
         {
            if(Math.abs(Motor_Power_List.get(0)) < 0.025d && Math.abs(Motor_Power_List.get(1)) < 0.025d )
           {
@@ -669,6 +752,12 @@ public  class MotorControllerModule {
               robot_Status = RobotStatus.DYNAMIC;
           }
         }
+      }
+      public void Robot_Status_Situational(int Situation)
+      {
+        if(Situation ==1 ) robot_Status =  RobotStatus.TURNING;
+        else if(Situation ==2 ) robot_Status =  RobotStatus.CONSTANTPOWER;
+        Situational = true;
       }
        /*|Endregion :  MOTOR DURUM İZLEME |*/
        /***************************/

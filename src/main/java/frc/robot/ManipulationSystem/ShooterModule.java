@@ -99,7 +99,6 @@ public  class ShooterModule {
           //Robotun atabileceği bir nota olup olmadığına göre atış yapılsın
           if(Ready_For_Shooting)
           {
-               
             //Robotun Notaya göre atacak motorlarını hazırlama
             if("Amp".equals(Shooting_Type)) 
             {
@@ -112,7 +111,6 @@ public  class ShooterModule {
           //     Shooter_Motor2.set(Target_Speaker_Power);
             } 
              is_Shot_Fired = true;
-            
             Shooter_Status = ShooterMotorStatus.Dynamic;
           }
      }
@@ -154,7 +152,7 @@ public  class ShooterModule {
                                    Thread.currentThread().interrupt();
                               }
                              }
-                    }
+                        }
                       }
                     }  
                }

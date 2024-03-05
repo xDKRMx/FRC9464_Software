@@ -75,17 +75,14 @@ public  class InputProcessingModule {
           return Active_button;
       }
        //PID çağırma(sağ ikinci düğme)
-        public String PID_Motor_Speed(){
+        public void PID_Motor_Speed(){
           String pow_control_ipm = "";
-          if(Active_button==1){
-          pow_control_ipm="PID";
-          Motor_Controller_Module.robot_Status = RobotStatus.CONSTANTPOWER;
-          }
+          if(Active_button==1)pow_control_ipm="Constant";
           else{
           pow_control_ipm="Stability";
+          Motor_Controller_Module.Situational = false;
           }
           Motor_Controller_Module.Motor_Power_Control=pow_control_ipm;
-          return Motor_Controller_Module.Motor_Power_Control;
       }
 
         //Rotate (+ için sol 1, - için sağ 3)
