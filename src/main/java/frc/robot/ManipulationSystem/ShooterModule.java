@@ -31,7 +31,7 @@ public  class ShooterModule {
       
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
       public Double Target_AMP_power = 0.3;
-      public double Target_Speaker_Power = 1;
+      public double Target_Speaker_Power = 0.7;
       private Double Current_Shooter_Power = 0d;
       //Atış işlemi için yapılan boolean kontrolleri
       private Boolean is_Shot_Fired;
@@ -75,6 +75,7 @@ public  class ShooterModule {
       {
      //     Shooter_Motor1.set(-0.5);
      //     Shooter_Motor2.set(-0.5);
+      Current_Shooter_Power = -1d;
          is_Shot_Fired = true;
          Shooter_Status = ShooterMotorStatus.Dynamic;
 
@@ -102,11 +103,13 @@ public  class ShooterModule {
             //Robotun Notaya göre atacak motorlarını hazırlama
             if("Amp".equals(Shooting_Type)) 
             {
+              Current_Shooter_Power = Target_AMP_power;
           //    Shooter_Motor1.set(Target_AMP_power);
           //    Shooter_Motor2.set(Target_AMP_power);
             } 
             else if("Speaker".equals(Shooting_Type))
             {
+                Current_Shooter_Power = Target_Speaker_Power;
           //     Shooter_Motor1.set(Target_Speaker_Power);
           //     Shooter_Motor2.set(Target_Speaker_Power);
             } 
@@ -135,9 +138,8 @@ public  class ShooterModule {
                              if (is_Shot_Fired) {
                               // PID çıktısını hesaplayın
                               double output = pidController1.calculate(Current_Shooter_Power);
-                              System.out.println(output + " OUTPUT");
-                              //Current_Shooter_Power1 =  Current_Shooter_Power1 > 0 ? Current_Shooter_Power1 - 0.05 : Current_Shooter_Power1 + 0.05d;
-                              //Current_Shooter_Power2 =  Current_Shooter_Power2 > 0 ? Current_Shooter_Power2 - 0.05 : Current_Shooter_Power2 + 0.05d;
+                              Current_Shooter_Power =  Current_Shooter_Power > 0 ? Current_Shooter_Power - 0.05 : Current_Shooter_Power + 0.05d;
+                              System.out.println(Current_Shooter_Power + " Shooter");
                               //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
                               // Shooter_Motor1.set(output);
                               // Shooter_Motor2.set(output);

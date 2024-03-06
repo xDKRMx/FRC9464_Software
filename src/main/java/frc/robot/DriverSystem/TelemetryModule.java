@@ -56,8 +56,8 @@ public  class TelemetryModule {
          // SmartDashboard.putData("RobotPose", Pose_Sendable);
         
          // ROBOTUN VAROLAN HIZI
-         // _Motor_Controller.Sensor_Integration.Get_Motors_Speed();
-
+         double D =  _Motor_Controller.Sensor_Integration.Get_Rotation_Angle();
+         SmartDashboard.putNumber("ANGLE :   ", D);
          //Robotun motorlarındaki toplam enerji tüketimi
          double Energy_Consumption = _Motor_Controller.Get_Energy_Consuption();
          SmartDashboard.putNumber("Energy Consumption  ", Energy_Consumption);
