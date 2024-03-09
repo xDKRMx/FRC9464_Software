@@ -264,7 +264,7 @@ public  class MotorControllerModule {
          timer.reset();
          timer.restart();
        }
-       
+     
        public void Autonomous_Drive_Periodic() {
         /*OTONOMDA YAPILACAK İŞLEMLER */
          // ilgili noktaya dönme, döndükten sonra hopörlöre atış işlemi ardından tekrar eski başlangıç açısına dönme
@@ -272,12 +272,21 @@ public  class MotorControllerModule {
            //Kaynak noktasının apriltag'i algılandıktan sonra limelight dökümentasyonundaki mesafe ölçümü ile uzaklık bulunduktan sonra o uzaklğının birazcık daha az değeri ile robota gitmesi için bir setpoint noktası belirleyip oraya yöneltme
            //Robotun her frame otonomdaki işlemleri matematiksel olarak değerlendirip onu koordinat sistemine göre değerlendireceğiz
             Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
-           if (timer.get() <= 100) {
-             
-               CurrentAngle =Current_Point.getRotation().getDegrees();
-               CurrentAngle %= 360;
-               if(CurrentAngle < 0) CurrentAngle += 360;
-               CurrentAngle = Math.toRadians(CurrentAngle);
+            CurrentAngle =Current_Point.getRotation().getDegrees();
+           CurrentAngle %= 360;
+           if(CurrentAngle < 0) CurrentAngle += 360;
+           CurrentAngle =  CurrentAngle * 2 / 360;
+           System.out.println(CurrentAngle + " Current");
+           
+           if(timer.get() < 2)
+           {
+            //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
+            //Notanın robot içinde olup olmaması Touch sensörü ile kontrol ediliyor
+             boolean Note_In_Robot = Sensor_Integration.Note_Touch_Control();
+             if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
+             else Shooter_Module.SlowDown_Motor_Power("Shooter");
+           }
+           else if (timer.get() >= 2 && timer.get() <= 50) {
                //Robotun varolan açısını bulma
               // CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
                /*LIMELIGHT TAKILANA KADAR  BU KISIM YORUM SATIRINDA OLACAK*/
@@ -304,11 +313,13 @@ public  class MotorControllerModule {
                 //Radyan cinsinden
                 //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
                //Robotun varolan açısını bulma
+             
                if( Initial_Angle_Difference==999d)
                 {
                   TargetAngle = CurrentAngle + 1;
                   Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
                 }
+                System.out.println(TargetAngle  + " Target " + CurrentAngle + " Current");
                if(!Stop_Rotate)
                {
                 if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
@@ -317,7 +328,6 @@ public  class MotorControllerModule {
                     Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
                 }
                }
-               System.out.println( " Current : " + Math.toDegrees(CurrentAngle) );
                 if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
                 {
                       Initial_Angle_Difference = 999d;
@@ -328,39 +338,32 @@ public  class MotorControllerModule {
                       /* */
                       Motor_Power_List.set(1, 0d);
                 }
-                 
                }
-               
            } 
-           else if(timer.get() > 100 && timer.get() <= 150)
-           {
-            //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
-            //Notanın robot içinde olup olmaması Touch sensörü ile kontrol ediliyor
-             boolean Note_In_Robot = Sensor_Integration.Note_Touch_Control();
-             if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
-             else Shooter_Module.SlowDown_Motor_Power("Shooter");
-           }
            else if(timer.get() > 200 && timer.get() < 600)
            {
                //Roobt dönüp notayı attıktan sonra eski açısına dönme işlemi
                TargetAngle = 0;
-               //Robotun varolan açısını bulma
-               CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
-               if(Math.abs(CurrentAngle - TargetAngle) > 0.3d )
+              if( Initial_Angle_Difference==999d)    Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
+               
+               if(!Stop_Rotate)
+               {
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
                 {
-                  if( Initial_Angle_Difference==999d)
-                  {
-                    Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
-                  }
-                  double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) ;
-                  Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
+                    double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
+                    Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
                 }
-                else
+               }
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
                 {
-                     Stop_Rotating();
-
-                     Initial_Angle_Difference = 999d;
+                      Initial_Angle_Difference = 999d;
+                      Stop_Rotating();
+                      //*deploy */
+                      Motor_Power_List.set(0, 0d);
+                      /* */
+                      Motor_Power_List.set(1, 0d);
                 }
+               
            }
            else if(timer.get() > 600 && timer.get() < 6700)
            {
