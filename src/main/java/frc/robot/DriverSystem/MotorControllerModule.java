@@ -186,7 +186,7 @@ public  class MotorControllerModule {
                double currentRightInput = Motor_Power_List.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
                double Speed_Input = joystick.getRawAxis(1);
-               double Rotate_Input = joystick.getRawAxis(0);
+               double Rotate_Input = joystick.getRawAxis(5);
                //Eşik değer kontrolü
                if(Math.abs(Speed_Input) < 0.08)Speed_Input = 0;
                if(Math.abs(Rotate_Input) < 0.08)Rotate_Input = 0;
@@ -271,11 +271,15 @@ public  class MotorControllerModule {
            //eski başlangıç açısına yakın bir değere dönüp taksi yapma taksi yapılıp belli bir mesafe katedildikten sonra kendi ekseninde dönüp ilgili kaynak noktasının Apriltagini algılma 
            //Kaynak noktasının apriltag'i algılandıktan sonra limelight dökümentasyonundaki mesafe ölçümü ile uzaklık bulunduktan sonra o uzaklğının birazcık daha az değeri ile robota gitmesi için bir setpoint noktası belirleyip oraya yöneltme
            //Robotun her frame otonomdaki işlemleri matematiksel olarak değerlendirip onu koordinat sistemine göre değerlendireceğiz
-           Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
+            Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
            if (timer.get() <= 100) {
+             
+               CurrentAngle =Current_Point.getRotation().getDegrees();
+               CurrentAngle %= 360;
+               if(CurrentAngle < 0) CurrentAngle += 360;
+               CurrentAngle = Math.toRadians(CurrentAngle);
                //Robotun varolan açısını bulma
-               CurrentAngle = Sensor_Integration.Get_Rotation_Angle();
-               
+              // CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
                /*LIMELIGHT TAKILANA KADAR  BU KISIM YORUM SATIRINDA OLACAK*/
               // int Apriltag_Tag = VisionProcessing.Scan_Apriltag();
                //Limelight'ın algıladığı apriltag'Lerin Hopörlöre ait olup olmadığını ID kontrolü yaparak karşılaştırıyoruz 
@@ -284,7 +288,6 @@ public  class MotorControllerModule {
                //Eğer ki algılanan tagin ID'si hopörlöre ait değilse o zaman höporlör ID'sini görene kadar döndür 
                if(reached_Angle == false)
                {
-                
                 //Apriltag algılandığında target açıyı algıladığı andaki açı belirleme
                 // if(Tag_Percieved)
                 //  {
@@ -299,68 +302,51 @@ public  class MotorControllerModule {
 
                 //Limelight olmadığı sürece kullanacağımız test kodu
                 //Radyan cinsinden
-                if(Initial_Angle_Difference == 999d)
+                //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
+               //Robotun varolan açısını bulma
+               if( Initial_Angle_Difference==999d)
                 {
                   TargetAngle = CurrentAngle + 1;
-                  TargetAngle %= 2;
-                  if(TargetAngle < 0) TargetAngle += 2;
-                  Initial_Angle_Difference = (CurrentAngle - TargetAngle);
+                  Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
                 }
-              //  System.out.println( " Difference : " +(TargetAngle - CurrentAngle)* 180);
-              //   if(Math.abs(CurrentAngle - TargetAngle)* 180 > 30d )
-              //   {
-              //     if(!Stop_Rotate) Rotate_Robot(0.3 , (CurrentAngle - TargetAngle) > 0 ? false : true );  
-              //   }
-                if(Math.abs(CurrentAngle - TargetAngle)* 180 > 0.3d)
-                {
-                    double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle) / Initial_Angle_Difference ) / 2;
-                    System.out.println( " Difference : " +(TargetAngle - CurrentAngle)* 180);
-                    Motor_Power_List.set(1,  (CurrentAngle - TargetAngle) > 0 ? Turning_Speed : -Turning_Speed );
-                }
-                else
-                {
-                   System.out.println("DENEME");
-                   Stop_Rotating();
-                   Motor_Power_List.set(0,  0d);
-                   Motor_Power_List.set(1,  0d);
-                  // Initial_Angle_Difference = 999d;
-                }
-               }
-               else
+               if(!Stop_Rotate)
                {
-                //Apriltag algılandıktan sonra aradaki açıda sapma yaşanacağı için tam olarak robotun notayı algılayacağı açıya sahip olması sağlanıyor
-                   if(Math.abs(CurrentAngle - TargetAngle) > 0.3d )
-                    {
-                      if( Initial_Angle_Difference==999d)
-                      {
-                        Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
-                      }
-                      double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) ;
-                      Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
-                    }
-                    else
-                    {
-                     Stop_Rotating();
-                     reached_Angle = false;
-                     Initial_Angle_Difference = 999d;
-                    }
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
+                {
+                    double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
+                    Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
+                }
                }
+               System.out.println( " Current : " + Math.toDegrees(CurrentAngle) );
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
+                {
+                      Initial_Angle_Difference = 999d;
+                      Stop_Rotating();
+                      reached_Angle = true;
+                      //*deploy */
+                      Motor_Power_List.set(0, 0d);
+                      /* */
+                      Motor_Power_List.set(1, 0d);
+                }
+                 
+               }
+               
            } 
            else if(timer.get() > 100 && timer.get() <= 150)
            {
             //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
             //Notanın robot içinde olup olmaması Touch sensörü ile kontrol ediliyor
              boolean Note_In_Robot = Sensor_Integration.Note_Touch_Control();
-             if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker");
-             else Shooter_Module.SlowDown_Motor_Power();
+             if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
+             else Shooter_Module.SlowDown_Motor_Power("Shooter");
            }
            else if(timer.get() > 200 && timer.get() < 600)
            {
                //Roobt dönüp notayı attıktan sonra eski açısına dönme işlemi
                TargetAngle = 0;
                //Robotun varolan açısını bulma
-               CurrentAngle =Current_Point.getRotation().getDegrees();
-               if(Math.abs(CurrentAngle - TargetAngle) > 3d )
+               CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
+               if(Math.abs(CurrentAngle - TargetAngle) > 0.3d )
                 {
                   if( Initial_Angle_Difference==999d)
                   {
@@ -372,6 +358,7 @@ public  class MotorControllerModule {
                 else
                 {
                      Stop_Rotating();
+
                      Initial_Angle_Difference = 999d;
                 }
            }
@@ -382,8 +369,7 @@ public  class MotorControllerModule {
            }
            else {
                // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz
-               //İlk başta robotumuzun default POSE2D class'ini kullanarak posizyon bilgilerini çekiyoruz
-               Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
+               
                 /*ROBOTUN SENSÖRLERİ ENTEGRE EDİLİNCE PROJEYE VERİLER SANAL POSE2D SINIFI ÜZERİNDEN DEĞİL DİREKT ROBOTUN SENSÖRÜNDEN ÇEKİLECEK */
                 /*SENSÖR VERİ */
                 // Current_Point = Sensor_Integration.Robot_Current_Position();
@@ -449,7 +435,7 @@ public  class MotorControllerModule {
               }
                Pose2dSendable.field2.setRobotPose(Setpoint);
            }
-           Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1), false);
+           Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
        }
         private Pose2d SetRandomPoint_Pose2D(double X_position, double Y_Position)
         {
@@ -552,7 +538,7 @@ public  class MotorControllerModule {
              //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
               Robot_Status_Situational(1);
               /*DEPLOYDA YORUM SATIRI */
-             // Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
+             Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
               /* */
               Motor_Power_List.set(1, Positive_Rotation ? Turning_Speed : -Turning_Speed);
         } 

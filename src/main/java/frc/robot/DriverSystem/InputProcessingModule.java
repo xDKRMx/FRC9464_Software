@@ -3,6 +3,7 @@ package frc.robot.DriverSystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.ManipulationSystem.ShooterModule;
+import frc.robot.ManipulationSystem.ShooterModule.AMPmotorStatus;
 import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
 
 //Simülasyonu bilgisayarda yapabilmek için klavye analog ataması
@@ -103,12 +104,15 @@ public  class InputProcessingModule {
         //Shooting Sistemi (L1 için atış AMP'ye, R1 için atış Hopörlöre yapılır) 
         public void Shoot_Note()
         {
-          if(Active_button==4) Shooter_Module.Intaking_Note();
-          else if(Active_button==5) Shooter_Module.Shoot_Subsystem("Amp");
-          else if(Active_button==6)  Shooter_Module.Shoot_Subsystem("Speaker");
+          if(Active_button==4) Shooter_Module.Intaking_Note("Shooter");
+          else if(Active_button==5) Shooter_Module.Shoot_Subsystem("Amp","Shooter");
+          else if(Active_button==6)  Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
+          else if(Active_button==2)Shooter_Module.Intaking_Note("AMP");
+          else if(Active_button==3) Shooter_Module.Shoot_Subsystem("","AMP");
           else 
           {
-            if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power();
+            if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
+             if(Shooter_Module.AMP_Status == AMPmotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("AMP");
           }
         }
 
