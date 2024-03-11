@@ -36,7 +36,7 @@ public  class ShooterModule {
        private CANSparkMax Shooter_Motor1 = new CANSparkMax(5, MotorType.kBrushless);
        private CANSparkMax Shooter_Motor2 = new CANSparkMax(6, MotorType.kBrushless);
      //AMP kısımı notayı bırakma işlemi
-     private CANSparkMax Amp_Motor = new CANSparkMax(7, MotorType.kBrushless); 
+     private CANSparkMax Amp_Motor = new CANSparkMax(7, MotorType.kBrushed); 
      //Amp kısmı için değişkenler
      public Double Cuurent_AMP_Power = 0d;
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
@@ -139,9 +139,9 @@ public  class ShooterModule {
           }
           else if(Shooting_Section == "AMP")
           {
-            Amp_Motor.set(0.4);
+            Amp_Motor.set(0.3);
            Cuurent_AMP_Power = Amp_Motor.get();
-            Shooter_Status = ShooterMotorStatus.Dynamic;    
+            AMP_Status = AMPmotorStatus.Dynamic;    
           }
          
      }
@@ -151,6 +151,7 @@ public  class ShooterModule {
      //Robot, atış işlemini yaptıktan sonra atışı yapan shooter motorlarını yavaşlatmaya geçme algoritması
      public void SlowDown_Motor_Power(String Shooting_Section)
      {
+          System.out.println("DENEME");
           Thread thread = new Thread(new Runnable() {
                @Override
                public void run() {
@@ -192,8 +193,7 @@ public  class ShooterModule {
                         try (// PID denetleyicisi oluşturup buradaki katsayılar üzerinden motorları yavaşlatacağız
                               PIDController pidController1 = new PIDController(0.2, 0.05, 0.01)) {
                              // Setpoint'i 0 olarak ayarlama
-                             pidController1.setSetpoint(0.0);
-                             if (is_Shot_Fired) {
+                              pidController1.setSetpoint(0.0);
                               // PID çıktısını hesaplayın
                               double output = pidController1.calculate(Cuurent_AMP_Power);
                               Cuurent_AMP_Power =  Cuurent_AMP_Power > 0 ? Cuurent_AMP_Power - 0.05 : Cuurent_AMP_Power + 0.05d;
@@ -210,7 +210,6 @@ public  class ShooterModule {
                                } catch (InterruptedException e) {
                                    Thread.currentThread().interrupt();
                               }
-                             }
                         }
                       } 
                     }

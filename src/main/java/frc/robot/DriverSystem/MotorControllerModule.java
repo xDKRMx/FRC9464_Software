@@ -186,7 +186,7 @@ public  class MotorControllerModule {
                double currentRightInput = Motor_Power_List.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
                double Speed_Input = joystick.getRawAxis(1);
-               double Rotate_Input = joystick.getRawAxis(5);
+               double Rotate_Input = joystick.getRawAxis(0);
                //Eşik değer kontrolü
                if(Math.abs(Speed_Input) < 0.08)Speed_Input = 0;
                if(Math.abs(Rotate_Input) < 0.08)Rotate_Input = 0;
@@ -233,7 +233,6 @@ public  class MotorControllerModule {
             {
              // Motor_Stability(0.2d);
             }
-          
           }
           else if(Motor_Power_Control == "Constant")
           {
@@ -251,7 +250,9 @@ public  class MotorControllerModule {
           //System.out.println(Motor_Power_Control + " " + robot_Status);
             Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
          //  System.out.println(Left_Leader.get() + " Left motor " + Right_Leader.get() + " right ");
-       }
+         double Deneme = VisionProcessing.Scan_Apriltag();
+         System.out.println(Deneme + " ID");
+         }
        /*|END Title : TELOP MOTOR KISMI  |*/
 
        /*| Title : OTONOM MOTOR KISMI  |*/
@@ -271,11 +272,13 @@ public  class MotorControllerModule {
            //eski başlangıç açısına yakın bir değere dönüp taksi yapma taksi yapılıp belli bir mesafe katedildikten sonra kendi ekseninde dönüp ilgili kaynak noktasının Apriltagini algılma 
            //Kaynak noktasının apriltag'i algılandıktan sonra limelight dökümentasyonundaki mesafe ölçümü ile uzaklık bulunduktan sonra o uzaklğının birazcık daha az değeri ile robota gitmesi için bir setpoint noktası belirleyip oraya yöneltme
            //Robotun her frame otonomdaki işlemleri matematiksel olarak değerlendirip onu koordinat sistemine göre değerlendireceğiz
+            //Robotun varolan açısını bulma
+            /* CurrentAngle =Sensor_Integration.Get_Rotation_Angle(); */
             Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
             CurrentAngle =Current_Point.getRotation().getDegrees();
            CurrentAngle %= 360;
            if(CurrentAngle < 0) CurrentAngle += 360;
-           CurrentAngle =  CurrentAngle * 2 / 360;
+           CurrentAngle =  CurrentAngle /180;
            System.out.println(CurrentAngle + " Current");
            
            if(timer.get() < 2)
@@ -286,34 +289,10 @@ public  class MotorControllerModule {
              if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
              else Shooter_Module.SlowDown_Motor_Power("Shooter");
            }
-           else if (timer.get() >= 2 && timer.get() <= 50) {
-               //Robotun varolan açısını bulma
-              // CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
-               /*LIMELIGHT TAKILANA KADAR  BU KISIM YORUM SATIRINDA OLACAK*/
-              // int Apriltag_Tag = VisionProcessing.Scan_Apriltag();
-               //Limelight'ın algıladığı apriltag'Lerin Hopörlöre ait olup olmadığını ID kontrolü yaparak karşılaştırıyoruz 
-              // Boolean Tag_Percieved = (Apriltag_Tag == 2);
-               /* */
-               //Eğer ki algılanan tagin ID'si hopörlöre ait değilse o zaman höporlör ID'sini görene kadar döndür 
+           else if (timer.get() >= 2 && timer.get() <= 5) {
                if(reached_Angle == false)
                {
-                //Apriltag algılandığında target açıyı algıladığı andaki açı belirleme
-                // if(Tag_Percieved)
-                //  {
-                //   reached_Angle = true;
-                //   TargetAngle = CurrentAngle;
-                //  }
-                //  else
-                //  {
-                //     //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
-                //     Rotate_Robot(0.5 , (CurrentAngle - TargetAngle) > 0 ? false : true );
-                //  }
-
-                //Limelight olmadığı sürece kullanacağımız test kodu
-                //Radyan cinsinden
-                //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
-               //Robotun varolan açısını bulma
-             
+               //Robotun varolan açısına geri dönmesi 
                if( Initial_Angle_Difference==999d)
                 {
                   TargetAngle = CurrentAngle + 1;
@@ -339,36 +318,94 @@ public  class MotorControllerModule {
                       Motor_Power_List.set(1, 0d);
                 }
                }
-           } 
-           else if(timer.get() > 200 && timer.get() < 600)
-           {
-               //Roobt dönüp notayı attıktan sonra eski açısına dönme işlemi
-               TargetAngle = 0;
-              if( Initial_Angle_Difference==999d)    Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
-               
-               if(!Stop_Rotate)
-               {
-                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
-                {
-                    double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
-                    Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
-                }
-               }
-                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
-                {
-                      Initial_Angle_Difference = 999d;
-                      Stop_Rotating();
-                      //*deploy */
-                      Motor_Power_List.set(0, 0d);
-                      /* */
-                      Motor_Power_List.set(1, 0d);
-                }
-               
            }
-           else if(timer.get() > 600 && timer.get() < 6700)
+           else if(timer.get() >=5 && timer.get() <5.5)
            {
              //Robotun taksi yapma işlemi
              Motor_Power_List.set(0,0.4);
+             /*Deployda silinecek */
+             Motor_Power_List.set(1,0.4);
+             //Bir sonraki işlem için ön hazırlık
+             Stop_Rotate = false;
+           } 
+           else if(timer.get() >= 5.5 && timer.get() <= 15)
+           {
+               //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
+                if(!Stop_Rotate)
+                {
+                     Double Apriltag_ID = VisionProcessing.Scan_Apriltag();
+                     Boolean ID_perceived = Apriltag_ID == 2 || Apriltag_ID == 5 ? true : false;
+                     if(!ID_perceived ) Rotate_Robot(0.3 , (TargetAngle - CurrentAngle) > 0 ? true : false );
+                     else
+                     {
+                        if( Initial_Angle_Difference==999d)
+                      {
+                        TargetAngle = CurrentAngle;
+                        Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
+                      }
+                      System.out.println(TargetAngle  + " Target " + CurrentAngle + " Current");
+                     if(!Stop_Rotate)
+                     {
+                      if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
+                      {
+                          double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
+                          Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
+                      }
+                     }
+                      if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
+                      {
+                            Initial_Angle_Difference = 999d;
+                            Stop_Rotating();
+                            reached_Angle = true;
+                            //*deploy */
+                            Motor_Power_List.set(0, 0d);
+                            /* */
+                            Motor_Power_List.set(1, 0d);
+                      }
+                  }
+                 }
+                else
+                {
+                  //Eğer ki stop rotation işlemi true olmuşsa demekki Limelight tarafından ilgili APriltag algılanmış ve kaynak noktasu bulunmuştur 
+                  //Buradaki işlemle de robotun April tag ile arasındaki mesafe çekilip bu mesafeye bir tık daha yakın bir noktada ve robotun baktığı doğrultudan bir setpoint oluşturup oraya gitme
+                  Double Distance = VisionProcessing.Apriltag_Get_Distance(0d, 0d, 0d, 0.2d);
+                 Double Current_X_Position = Math.cos(CurrentAngle) * (Distance - 0.5d);
+                 Double Current_Y_Position = Math.sin(CurrentAngle) * (Distance - 0.5d);
+                  if(Is_Point_Setted == false)
+                  {
+                   Setpoint = new Pose2d(Current_X_Position,Current_Y_Position,new Rotation2d(Math.toRadians(TargetAngle)));
+                   Is_Point_Setted = true;
+                   }
+                  TargetAngle = CalculateAngle_Pose2D(Current_Point,Setpoint);
+                   if( Initial_Angle_Difference==999d)
+                   {
+                     Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
+                   }
+                   double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )*3  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) *2;
+                   if(Math.abs(CurrentAngle - TargetAngle ) > 75) Turning_Speed = 1;
+                  if(Math.abs(CurrentAngle - TargetAngle) > 3d && !reached_Setpoint  && !manoeuvre && !reached_Angle)
+                  {
+                    //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
+                   Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
+                  }
+                  else
+                  {
+                    //koşul sağlandığında robotu döndürmeyi bırak ve robotun motorlarına bu sefer istenilen Setpoint noktasına gitmesi için güç ver  
+                    // Stop_Rotating();
+                    if(reached_Angle == false) reached_Angle = true;
+                  }
+                  if(reached_Angle)
+                  {
+                   Autonomous_Set_Robot(); //Robotun motorlarına  güç ver 
+                   //Robotun hem dönmek için hem de hedeflenen noktaya gitmek için vakit kaybetmemesi için biz robota aynı anda iki tane işlem yaptırıyoruz bu sayede vakit kazanıyoruz.
+                   //buradaki işlemde Autonomous_Set_Robot robotun motorlarına ileri gidecek şekilde (Lineer Interpolasyon ile) güç veriyor alttaki sorgulama ise robotun hedef noktası ile  arasında bir açı farkı varsa robotun oraya giderken o noktaya tam gidebilmesi için robotu döndürür.
+                   // robot setpoint noktasına giderken iki işlem gerçekleşeceği için optimizasyonda sıkıntı çıkabilir duruma göre kod optimize edilecektir
+                   if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !manoeuvre)
+                   {
+                    Motor_Power_List.set(1,  (CurrentAngle - TargetAngle) > 0 ? Motor_Power_List.get(1) - Turning_Speed : Motor_Power_List.get(1) + Turning_Speed);
+                   }
+                  }
+                }
            }
            else {
                // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz

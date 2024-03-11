@@ -86,19 +86,19 @@ public  class InputProcessingModule {
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {
           //Joystick 1'de trigger'ın basılıp basılmamasına göre döndürme
-          // if(Active_button == 7) Motor_Controller_Module.Rotate_Robot(1,true);
-          // //Negatif yön
-          // else if(Active_button == 8)Motor_Controller_Module.Rotate_Robot(1,false);
-          // else Motor_Controller_Module.Stop_Rotating();
+          if(Active_button == 7) Motor_Controller_Module.Rotate_Robot(1,true);
+          //Negatif yön
+          else if(Active_button == 8)Motor_Controller_Module.Rotate_Robot(1,false);
+          else Motor_Controller_Module.Stop_Rotating();
 
           //Joystick 2'de triggerın basılma oranına göre döndürme
-          double L1_Input = Joystick.getRawAxis(2);
-          double R1_Input = Joystick.getRawAxis(3);
-          // Pozitif yön
-          if(L1_Input > 0.1 && R1_Input < 0.1) Motor_Controller_Module.Rotate_Robot(L1_Input,true);
-          //Negatif yön
-          else if(L1_Input < 0.1 && R1_Input > 0.1)Motor_Controller_Module.Rotate_Robot(R1_Input,false);
-          else Motor_Controller_Module.Stop_Rotating();
+          // double L1_Input = Joystick.getRawAxis(2);
+          // double R1_Input = Joystick.getRawAxis(3);
+          // // Pozitif yön
+          // if(L1_Input > 0.1 && R1_Input < 0.1) Motor_Controller_Module.Rotate_Robot(L1_Input,true);
+          // //Negatif yön
+          // else if(L1_Input < 0.1 && R1_Input > 0.1)Motor_Controller_Module.Rotate_Robot(R1_Input,false);
+          // else Motor_Controller_Module.Stop_Rotating();
         }
 
         //Shooting Sistemi (L1 için atış AMP'ye, R1 için atış Hopörlöre yapılır) 

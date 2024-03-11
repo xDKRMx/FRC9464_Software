@@ -16,7 +16,9 @@ public  class VisionProcessing
   private static NetworkTableEntry ledMode;
   private static NetworkTableEntry tvert;
   private static NetworkTableEntry thor;
-
+//Apriltag verileri çekme
+ private double April_Tag_ID =0;
+ public Boolean Tag_Detected;
 
   //enum lar  limelight sensörünün farklı modelarını ve fonkisyonlarını kontrol etmeye yarıyor. içerisinde iki fonksiyondan ilki ledin nasıl çalışacağını belirliyor. İkincisi ise mod verisi çekiyor. 
   private enum LEDMode 
@@ -154,11 +156,27 @@ public  class VisionProcessing
   }
 
   //Apriltaglerin algılanması için Scan işlemi 
-  public int Scan_Apriltag()
+  public Double Scan_Apriltag()
   {
-    int Tag_Id = -1;
+    Double Tag_Id = 0d;
     //Apriltag Algılama algoritması
-
-    return Tag_Id;
+   Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(10);
+    April_Tag_ID = Tag_Id != 0 ? Tag_Id : 0;
+    Tag_Detected = April_Tag_ID != 0 ? true : false;
+    return April_Tag_ID;
+  }
+  //Algılanana Apriltag'in robota uzaklığını ölçme
+  public Double Apriltag_Get_Distance(Double TagAngle,Double CameraAngle,double Camera_Height, Double Apriltag_height)
+  {
+    double Distance = 0;
+    if(Tag_Detected)
+    {
+      double angleToTagDegrees = CameraAngle + getTargetOffsetY() ;
+      double angleToTagRadians = angleToTagDegrees * (3.14159 / 180.0);
+      //calculate distance
+      Distance= (Apriltag_height - Camera_Height) / Math.tan(angleToTagRadians);
+    }
+    else Distance = 0d;
+    return Distance;
   }
 }
