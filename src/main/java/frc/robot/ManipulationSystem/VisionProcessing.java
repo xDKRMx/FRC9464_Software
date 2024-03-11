@@ -159,11 +159,21 @@ public  class VisionProcessing
   public Double Scan_Apriltag()
   {
     Double Tag_Id = 0d;
+    Double OffsetX  = getTargetOffsetX();
+    Double OffsetY  = getTargetOffsetY();
+    if((OffsetX < 5 && OffsetX > -5) &&(OffsetY < 5 && OffsetY > -5) )
+    {
     //Apriltag Algılama algoritması
-   Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(10);
+    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(10);
     April_Tag_ID = Tag_Id != 0 ? Tag_Id : 0;
     Tag_Detected = April_Tag_ID != 0 ? true : false;
     return April_Tag_ID;
+    }
+    else
+    {
+      return Tag_Id;
+    }
+  
   }
   //Algılanana Apriltag'in robota uzaklığını ölçme
   public Double Apriltag_Get_Distance(Double TagAngle,Double CameraAngle,double Camera_Height, Double Apriltag_height)
