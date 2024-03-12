@@ -2,6 +2,8 @@ package frc.robot.DriverSystem;
 
 
 import frc.robot.ManipulationSystem.*;
+import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -275,11 +277,11 @@ public  class MotorControllerModule {
             //Robotun varolan açısını bulma
             /* CurrentAngle =Sensor_Integration.Get_Rotation_Angle(); */
             Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
-            CurrentAngle =Current_Point.getRotation().getDegrees();
-           CurrentAngle %= 360;
-           if(CurrentAngle < 0) CurrentAngle += 360;
-           CurrentAngle =  CurrentAngle /180;
-           System.out.println(CurrentAngle + " Current");
+            CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
+          //  CurrentAngle %= 360;
+          //  if(CurrentAngle < 0) CurrentAngle += 360;
+          //  CurrentAngle =  CurrentAngle /180;
+          
            
            if(timer.get() < 2)
            {
@@ -289,46 +291,50 @@ public  class MotorControllerModule {
              if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
              else Shooter_Module.SlowDown_Motor_Power("Shooter");
            }
-           else if (timer.get() >= 2 && timer.get() <= 5) {
+           else if (timer.get() >= 2 && timer.get() <= 4) {
+               if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
                if(reached_Angle == false)
                {
                //Robotun varolan açısına geri dönmesi 
                if( Initial_Angle_Difference==999d)
                 {
-                  TargetAngle = CurrentAngle + 1;
+                  System.out.println("Deneme");
+                  TargetAngle =CurrentAngle +  1;
+                  if(TargetAngle >2 ) TargetAngle -= 2;
+                   if(TargetAngle < 0 ) TargetAngle += 2;
                   Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
                 }
-                System.out.println(TargetAngle  + " Target " + CurrentAngle + " Current");
+                System.out.println((TargetAngle - CurrentAngle)* 180 + " Difference");
                if(!Stop_Rotate)
                {
-                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
+                if(Math.abs(CurrentAngle - TargetAngle)*180>  1d )
                 {
                     double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
                     Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
                 }
                }
-                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
+                if(Math.abs(CurrentAngle - TargetAngle)*180 < 1d )
                 {
                       Initial_Angle_Difference = 999d;
                       Stop_Rotating();
                       reached_Angle = true;
                       //*deploy */
-                      Motor_Power_List.set(0, 0d);
+                    //  Motor_Power_List.set(0, 0d);
                       /* */
                       Motor_Power_List.set(1, 0d);
                 }
                }
            }
-           else if(timer.get() >=5 && timer.get() <5.5)
+           else if(timer.get() >=4 && timer.get() <4.4)
            {
              //Robotun taksi yapma işlemi
-             Motor_Power_List.set(0,0.4);
+             Motor_Power_List.set(0,0.3);
              /*Deployda silinecek */
-             Motor_Power_List.set(1,0.4);
+             Motor_Power_List.set(1,0.3);
              //Bir sonraki işlem için ön hazırlık
              Stop_Rotate = false;
            } 
-           else if(timer.get() >= 5.5 && timer.get() <= 15)
+           else if(timer.get() >= 4.4 && timer.get() <= 15)
            {
                //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
                 if(!Stop_Rotate)
@@ -578,7 +584,7 @@ public  class MotorControllerModule {
              //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
               Robot_Status_Situational(1);
               /*DEPLOYDA YORUM SATIRI */
-             Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
+            // Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
               /* */
               Motor_Power_List.set(1, Positive_Rotation ? Turning_Speed : -Turning_Speed);
         } 
