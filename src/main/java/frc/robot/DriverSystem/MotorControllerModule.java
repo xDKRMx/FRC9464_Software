@@ -114,7 +114,15 @@ public  class MotorControllerModule {
      }
      /***************************/
 
-      /* | Region : MOTOR VERİELERİ ÇEKME  |*/
+     public Boolean CCRP_Check(double limelight_Height , double target_Height){
+          
+      if(VisionProcessing.hasValidTarget() && (target_Height - limelight_Height) / Math.tan(VisionProcessing.getTargetOffsetY() * (3.14159d/180.0d)) <= 20d){
+           return true;
+         }
+         else return false;
+      }
+     
+     /* | Region : MOTOR VERİELERİ ÇEKME  |*/
       //Sensör entegrasyon ve Telemetri modüllerinde bu tarz fonksiyonlardan yararlanarak robotun verilerini alacağız
       public ArrayList<Double> Get_Motor_Power_List()
       {
@@ -188,7 +196,7 @@ public  class MotorControllerModule {
                double currentRightInput = Motor_Power_List.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
                double Speed_Input = Math.pow(joystick.getRawAxis(1),3);
-               double Rotate_Input = Math.pow(joystick.getRawAxis(2),3);
+               double Rotate_Input = Math.pow(joystick.getRawAxis(2),5);
                //Eşik değer kontrolü
                if(Math.abs(Speed_Input) < 0.05)Speed_Input = 0;
                if(Math.abs(Rotate_Input) < 0.05)Rotate_Input = 0;

@@ -55,6 +55,7 @@ public  class InputProcessingModule {
         }
       
        }
+      
 
       /*|Endregion : JOYSTICK GİRİŞ İŞLEMLERİ |*/
       /***************************/
@@ -122,7 +123,8 @@ public  class InputProcessingModule {
           else if(Active_button==1)  Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
           else if(Active_POV==180)Shooter_Module.Intaking_Note("AMP");
           else if(Active_POV==0) Shooter_Module.Shoot_Subsystem("","AMP");
-          else 
+          else if(Active_POV==270 && Motor_Controller_Module.CCRP_Check(200d , 30d)==true) Shooter_Module.Shoot_Subsystem("Speaker" ,"Shooter");
+          else
           {
             if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
              if(Shooter_Module.AMP_Status == AMPmotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("AMP");

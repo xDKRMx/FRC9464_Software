@@ -66,6 +66,7 @@ public  class VisionProcessing
     camMode = table.getEntry("camMode"); // sensörün çalışma modu (0-1).
     tvert = table.getEntry("tvert");// algılanan cismin sınırlayıcı kutusunun dikey boyu
     thor = table.getEntry("thor");// algılanan cismin sınırlayıcı kutusunun yatay boyu
+    
   }
 
   public boolean hasValidTarget(){
@@ -89,8 +90,6 @@ public  class VisionProcessing
   public double getTargetArea() {
     return ta.getDouble(0.0);
   }
-
-
   // led modunu ayarlama metodu -çağırırken setLEDMode(LEDMode.ON) tarzında yapılıyor.
   public void setLEDMode(LEDMode mode) {
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(mode.getValue());
@@ -164,7 +163,7 @@ public  class VisionProcessing
     if((OffsetX < 5 && OffsetX > -5) &&(OffsetY < 5 && OffsetY > -5) )
     {
     //Apriltag Algılama algoritması
-    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(10);
+    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(-1);
     April_Tag_ID = Tag_Id != 0 ? Tag_Id : 0;
     Tag_Detected = April_Tag_ID != 0 ? true : false;
     return April_Tag_ID;
