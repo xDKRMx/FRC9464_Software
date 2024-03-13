@@ -283,15 +283,24 @@ public  class MotorControllerModule {
           //  CurrentAngle =  CurrentAngle /180;
           
            
-           if(timer.get() < 2)
+           if(timer.get() < 20)
            {
             //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
             //Notanın robot içinde olup olmaması Touch sensörü ile kontrol ediliyor
              boolean Note_In_Robot = Sensor_Integration.Note_Touch_Control();
              if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
              else Shooter_Module.SlowDown_Motor_Power("Shooter");
+            //   if(Is_Point_Setted == false)
+            //   {
+            //        Setpoint = new Pose2d(Current_Point.getX() +1,Current_Point.getX() ,new Rotation2d(Math.toRadians(CurrentAngle)));
+                   
+            //        Is_Point_Setted = true;
+            //  }
+            //  OBSTACLES.set(0, Setpoint);
+            
+           //  Autonomous_Set_Robot();
            }
-           else if (timer.get() >= 2 && timer.get() <= 4) {
+           else if (timer.get() >= 20 && timer.get() <= 40) {
                if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
                if(reached_Angle == false)
                {
@@ -325,7 +334,7 @@ public  class MotorControllerModule {
                 }
                }
            }
-           else if(timer.get() >=4 && timer.get() <4.4)
+           else if(timer.get() >=40&& timer.get() <40.4)
            {
              //Robotun taksi yapma işlemi
              Motor_Power_List.set(0,0.3);
@@ -334,7 +343,7 @@ public  class MotorControllerModule {
              //Bir sonraki işlem için ön hazırlık
              Stop_Rotate = false;
            } 
-           else if(timer.get() >= 4.4 && timer.get() <= 15)
+           else if(timer.get() >= 40.4 && timer.get() <= 150)
            {
                //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
                 if(!Stop_Rotate)
@@ -525,22 +534,24 @@ public  class MotorControllerModule {
         double x_distance = Setpoint.getX() - Current_Point.getX();
         double y_distance = Setpoint.getY() - Current_Point.getY();
         double error = Math.sqrt(x_distance * x_distance + y_distance * y_distance);
-        
+       
         if(Initial_Error == 999d) Initial_Error = error;
         //Roobtun motorlarına verilecek gücün yine Lineer Interpolasyon ile eror mesafesine bağlı olarak verilmesi
-        double Power = error / Initial_Error; 
+        double Power = (error / Initial_Error) / 5; 
        // System.out.println( error + " ERROR ");
-        if (Math.abs(error) < 1d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt durma komutu yazılmış
+        if (Math.abs(error) < 0.3d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt durma komutu yazılmış
           // Manevra testi için yorum satırına alınmıştır error'ün koşulu normalde 0.1 altı
             //  Motor_Power_List.set(0, 0d);
             // Motor_Power_List.set(1,0d);
             /************** */
             //robotun motorlara güç vermeyi durdurması yerine yeni bir setpoint oluşturup oraya gitmesini sağlaması ve bu şekilde SANAL ORTAMDA sonsuz loop'a sokulması
-            Stop_Rotating();
-            Is_Point_Setted = false;
-            reached_Setpoint = false;
-            reached_Angle = false;
-            Initial_Angle_Difference = 999d;
+          //  Stop_Rotating();
+            // Is_Point_Setted = false;
+            // reached_Setpoint = false;
+            // reached_Angle = false;
+            // Initial_Angle_Difference = 999d;
+             Motor_Power_List.set(0, 0d);
+              Motor_Power_List.set(0, 0d);
         } 
         else {
           //ROBOTUN HEDEFLENEN NOKTAYA YAKLAŞIRKEN ÖNÜNE ÇIKAN HERHANGİ BİR ENGEL ÇIKMASI HALİNDE MANEVRA KONTOLÜ YAPMASI
@@ -693,6 +704,7 @@ public  class MotorControllerModule {
             Y_difference = Math.abs(Current_Point.getY() -Obstacle_Point.getY());
             Angle_Difference = Math.abs(Current_Point.getRotation().getDegrees() -  Obstacle_Point.getRotation().getDegrees());
             Current_Distance = Math.sqrt(X_difference * X_difference + Y_difference * Y_difference); 
+             System.out.println(Current_Distance + " distance");
          }
          //Obstacle noktası ile robotun bulunduğu konumun Pose2D karşılaştırması sonucu değerler limit değerlere uygun değilse manevra sistemine geçilsin
          if( Current_Distance  != 0d && Current_Distance < Limit_Distance &&  Angle_Difference < 20) manoeuvre = true;
@@ -728,8 +740,9 @@ public  class MotorControllerModule {
             //Buradaki Foreach döngüsü Sanal ortamda oluşturulmuş olan obstacle noktalarının sıra sıra obstacle noktası olması sağlanır
             Obstacle_Point = pose2d;
             //manevra sistemi çalışmıyorsa gösterge olarak green ghost robot modelini obstacle noktasında göster
-            Pose2dSendable.field3.setRobotPose(Obstacle_Point);
+           System.out.println(pose2d +  "Obstacle");
           }
+           
          }
          
          /****************** */
