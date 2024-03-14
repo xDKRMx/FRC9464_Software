@@ -119,7 +119,7 @@ public  class InputProcessingModule {
         public void Shoot_Note()
         {
           if(Active_button==2) Shooter_Module.Intaking_Note("Shooter");
-          else if(Active_button==5) Shooter_Module.Shoot_Subsystem("Amp","Shooter");
+          else if(Active_POV==90) Shooter_Module.Shoot_Subsystem("Amp","Shooter");
           else if(Active_button==1)  Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
           else if(Active_POV==180)Shooter_Module.Intaking_Note("AMP");
           else if(Active_POV==0) Shooter_Module.Shoot_Subsystem("","AMP");

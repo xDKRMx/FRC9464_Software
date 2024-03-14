@@ -194,7 +194,7 @@ public  class VisionProcessing
   public Double apriltag_Get_Distance_X(double target_Height){
     double DistanceX = 99999d;
     if(apriltag_Get_Distance_Y(target_Height) <= 99999d){
-      DistanceX = Math.tan(getTargetOffsetX()) * apriltag_Get_Distance_Y(target_Height);
+      DistanceX = Math.tan(Math.toRadians(getTargetOffsetX())) * apriltag_Get_Distance_Y(target_Height);
     }
     return DistanceX;
   }

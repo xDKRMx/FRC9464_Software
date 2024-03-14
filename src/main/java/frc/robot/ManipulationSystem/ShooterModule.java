@@ -39,7 +39,7 @@ public  class ShooterModule {
      //Amp kısmı için değişkenler
      public Double Cuurent_AMP_Power = 0d;
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
-      public Double Target_AMP_power = 0.5;
+      public Double Target_AMP_power = 0.20;
       public double Target_Speaker_Power = 1;
       private Double Current_Shooter_Power = 0d;
       //Atış işlemi için yapılan boolean kontrolleri
@@ -91,7 +91,7 @@ public  class ShooterModule {
           }
           else if(Shooting_Section == "AMP") 
           {
-                Amp_Motor.set(-0.1);
+                Amp_Motor.set(-0.5);
                 AMP_Status = AMPmotorStatus.Dynamic;
           }
       }
