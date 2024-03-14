@@ -175,17 +175,27 @@ public  class VisionProcessing
   
   }
   //Algılanana Apriltag'in robota uzaklığını ölçme
-  public Double Apriltag_Get_Distance(Double TagAngle,Double CameraAngle,double Camera_Height, Double Apriltag_height)
+  public Double apriltag_Get_Distance_Y(double Apriltag_height)
   {
-    double Distance = 0;
+    double CameraAngle = 0d;
+    double Camera_Height = 45d;
+    double DistanceY = 0;
     if(Tag_Detected)
     {
       double angleToTagDegrees = CameraAngle + getTargetOffsetY() ;
       double angleToTagRadians = angleToTagDegrees * (3.14159 / 180.0);
       //calculate distance
-      Distance= (Apriltag_height - Camera_Height) / Math.tan(angleToTagRadians);
+      DistanceY= (Apriltag_height - Camera_Height) / Math.tan(angleToTagRadians);
     }
-    else Distance = 0d;
-    return Distance;
+    else DistanceY = 99999d;
+    return DistanceY;
+  }
+  
+  public Double apriltag_Get_Distance_X(double target_Height){
+    double DistanceX = 99999d;
+    if(apriltag_Get_Distance_Y(target_Height) <= 99999d){
+      DistanceX = Math.tan(getTargetOffsetX()) * apriltag_Get_Distance_Y(target_Height);
+    }
+    return DistanceX;
   }
 }

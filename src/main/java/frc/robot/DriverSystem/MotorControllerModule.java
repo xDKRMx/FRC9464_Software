@@ -114,13 +114,6 @@ public  class MotorControllerModule {
      }
      /***************************/
 
-     public Boolean CCRP_Check(double limelight_Height , double target_Height){
-          
-      if(VisionProcessing.hasValidTarget() && (target_Height - limelight_Height) / Math.tan(VisionProcessing.getTargetOffsetY() * (3.14159d/180.0d)) <= 20d){
-           return true;
-         }
-         else return false;
-      }
      
      /* | Region : MOTOR VERİELERİ ÇEKME  |*/
       //Sensör entegrasyon ve Telemetri modüllerinde bu tarz fonksiyonlardan yararlanarak robotun verilerini alacağız
@@ -382,7 +375,7 @@ public  class MotorControllerModule {
                 {
                   //Eğer ki stop rotation işlemi true olmuşsa demekki Limelight tarafından ilgili APriltag algılanmış ve kaynak noktasu bulunmuştur 
                   //Buradaki işlemle de robotun April tag ile arasındaki mesafe çekilip bu mesafeye bir tık daha yakın bir noktada ve robotun baktığı doğrultudan bir setpoint oluşturup oraya gitme
-                  Double Distance = VisionProcessing.Apriltag_Get_Distance(0d, 0d, 0d, 0.2d);
+                  Double Distance = VisionProcessing.apriltag_Get_Distance_Y(0.2d);
                  Double Current_X_Position = Math.cos(CurrentAngle) * (Distance - 0.5d);
                  Double Current_Y_Position = Math.sin(CurrentAngle) * (Distance - 0.5d);
                   if(Is_Point_Setted == false)
