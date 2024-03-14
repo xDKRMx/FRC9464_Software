@@ -45,8 +45,6 @@ public  class InputProcessingModule {
           //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
            Joystick_Button_Processing();
            Joystick_POV_Processing();
-           //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
-           PID_Motor_Speed();
            //Rotate kontrol
            Rotate_Control();
            //Shoot kontrolü
@@ -92,10 +90,6 @@ public  class InputProcessingModule {
           return Active_POV;
 
         }
-       //PID çağırma(sağ ikinci düğme)
-        public void PID_Motor_Speed(){
-
-      }
 
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {

@@ -1,5 +1,4 @@
 package frc.robot.ManipulationSystem;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -16,9 +15,15 @@ public  class VisionProcessing
   private static NetworkTableEntry ledMode;
   private static NetworkTableEntry tvert;
   private static NetworkTableEntry thor;
+
 //Apriltag verileri çekme
- private double April_Tag_ID =0;
+ private float April_Tag_ID =0;
  public Boolean Tag_Detected;
+ //AprilTag Yükseklikleri
+ Double[] Apriltag_List = new Double[16];
+ //Algılanan Apriltag ile yatay ve dikey mesafeleri
+ private Double Distance_Y =9999d;
+ private Double Distance_X =9999d;
 
   //enum lar  limelight sensörünün farklı modelarını ve fonkisyonlarını kontrol etmeye yarıyor. içerisinde iki fonksiyondan ilki ledin nasıl çalışacağını belirliyor. İkincisi ise mod verisi çekiyor. 
   private enum LEDMode 
@@ -66,7 +71,25 @@ public  class VisionProcessing
     camMode = table.getEntry("camMode"); // sensörün çalışma modu (0-1).
     tvert = table.getEntry("tvert");// algılanan cismin sınırlayıcı kutusunun dikey boyu
     thor = table.getEntry("thor");// algılanan cismin sınırlayıcı kutusunun yatay boyu
-    
+
+    //Apriltaglerin default yükseklikleri
+    //CM cinsinden
+   Apriltag_List[0] =  127d; 
+   Apriltag_List[1] =  127d; 
+   Apriltag_List[2] =  137d; 
+   Apriltag_List[3] =  137d; 
+   Apriltag_List[4] =  127d; 
+   Apriltag_List[5] =  127d; 
+   Apriltag_List[6] =  137d; 
+   Apriltag_List[7] =  137d; 
+   Apriltag_List[8] =  144d; 
+   Apriltag_List[9] =  144d; 
+   Apriltag_List[10] =  126d; 
+   Apriltag_List[11] =  126d; 
+   Apriltag_List[12] =  126d; 
+   Apriltag_List[13] =  126d;
+   Apriltag_List[14] =  126d; 
+   Apriltag_List[15] =  126d; 
   }
 
   public boolean hasValidTarget(){
@@ -155,47 +178,41 @@ public  class VisionProcessing
   }
 
   //Apriltaglerin algılanması için Scan işlemi 
-  public Double Scan_Apriltag()
+  public float Scan_Apriltag()
   {
-    Double Tag_Id = 0d;
-    Double OffsetX  = getTargetOffsetX();
-    Double OffsetY  = getTargetOffsetY();
-    if((OffsetX < 5 && OffsetX > -5) &&(OffsetY < 5 && OffsetY > -5) )
-    {
+    float Tag_Id = 0f;
     //Apriltag Algılama algoritması
-    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(-1);
+    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getFloat(0f);
     April_Tag_ID = Tag_Id != 0 ? Tag_Id : 0;
     Tag_Detected = April_Tag_ID != 0 ? true : false;
     return April_Tag_ID;
-    }
-    else
-    {
-      return Tag_Id;
-    }
-  
   }
-  //Algılanana Apriltag'in robota uzaklığını ölçme
-  public Double apriltag_Get_Distance_Y(double Apriltag_height)
+  //Algılanan Apriltag'in robota uzaklığını ölçme
+  public Double apriltag_Get_Distance_Y(int Apriltag_ID)
   {
-    double CameraAngle = 0d;
+    if(Apriltag_ID != 0)
+    {
+   double CameraAngle = 0d;
     double Camera_Height = 45d;
-    double DistanceY = 0;
+    double Apriltag_height = Apriltag_List[Apriltag_ID -1];
     if(Tag_Detected)
     {
-      double angleToTagDegrees = CameraAngle + getTargetOffsetY() ;
-      double angleToTagRadians = angleToTagDegrees * (3.14159 / 180.0);
+      double angleToTagDegrees = CameraAngle + getTargetOffsetY();
+      double angleToTagRadians =Math.toRadians(angleToTagDegrees);
       //calculate distance
-      DistanceY= (Apriltag_height - Camera_Height) / Math.tan(angleToTagRadians);
+      Distance_Y= ( Apriltag_height- Camera_Height) / Math.tan(angleToTagRadians);
     }
-    else DistanceY = 99999d;
-    return DistanceY;
+    else Distance_Y = 9999d;
+    return Distance_Y;
+    }
+    else return 9999d;
   }
   
   public Double apriltag_Get_Distance_X(double target_Height){
-    double DistanceX = 99999d;
-    if(apriltag_Get_Distance_Y(target_Height) <= 99999d){
-      DistanceX = Math.tan(Math.toRadians(getTargetOffsetX())) * apriltag_Get_Distance_Y(target_Height);
+    if(target_Height != 9999d){
+      Distance_X = Math.tan(Math.toRadians(getTargetOffsetX())) * target_Height;
     }
-    return DistanceX;
+    else Distance_X = 9999d;
+    return Distance_X;
   }
 }

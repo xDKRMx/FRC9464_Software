@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-import javax.lang.model.util.ElementScanner14;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -18,7 +16,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
 import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
 
@@ -29,8 +26,7 @@ public  class MotorControllerModule {
        public enum RobotStatus {
         DYNAMIC,
         IDLE,
-        TURNING,
-        CONSTANTPOWER
+        TURNING
        }
      //Bu class bir nevi bizim için bir çok class içerisinde kullanacağımız ve robottaki bir çok kodun temelini oluşturacak bir class. 
      // Bu class içerisindeki işlemler bir nevi robotun içerisindeki temel dinamikler diyebilirim bu temel dinamiklere örnek olarak sürüş, dönme hareket durma ivmeli hareket vs.
@@ -182,7 +178,7 @@ public  class MotorControllerModule {
            //Burada bu joysticklerdeki axis'lerin itilme miktarını çektik
            if(joystick != null)
            {
-             if(robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
+             if(robot_Status != RobotStatus.TURNING )
              {
                  // Mevcut motorun güçlerini al
                double currentLeftInput = Motor_Power_List.get(0);
@@ -229,32 +225,10 @@ public  class MotorControllerModule {
           //* */
           //Robotumuzu tank Drive bir şekilde geliştireceğimiz için bu tanımladığımız Right ve Left Leader'laarın motorlarına verilen bir güç olmalı 
          //Bu gücü de Input Processing Class'i içerisinde tanımlanmış joystick'lerin yön tuşlarındaki kolun ne kadar itildiğine bağlı olarak alacağı değere bağlı olacak. Artı olarak parametrelere değerini Input Processing'deki Joystickler Verecek 
-
-          if(Motor_Power_Control == "Stability")
-          {
-            if(robot_Status != RobotStatus.TURNING)
-            {
-             // Motor_Stability(0.2d);
-            }
-          }
-          else if(Motor_Power_Control == "Constant")
-          {
-            if(robot_Status != RobotStatus.TURNING)
-            {
-             // PID sistemli motor güç kontrolünü çağırın
-              Double[] Current_Speed = Sensor_Integration.Get_Motors_Speed();
-             //BURADAKİ DEĞERLER DENEME YANILMA MAKSADIYLA GİRİLMİŞTİR DEĞİŞTİRİLEBİLİR
-             // PID_parametres(0.1,0.01,0.001);
-             //Buradaki SetPoint değeri İstenilen hızı temsil etmektedir 
-             //bizim PID algoritmasını yazarken ki amacımız aslında hem sağ hem de sol motorun hızını istenilen değere yani Setpoint değerine sabitlemek (Set point değeri değişken olabilir ancak bu bir hızı değeridir, motorların istenilen hız değeri)
-             Motor_Velocity_Equation((Motor_Power_List.get(0)), Current_Speed);
-             }
-          }
           //System.out.println(Motor_Power_Control + " " + robot_Status);
-            Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
+          Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
          //  System.out.println(Left_Leader.get() + " Left motor " + Right_Leader.get() + " right ");
          double Deneme = VisionProcessing.Scan_Apriltag();
-         System.out.println(Deneme + " ID");
          }
        /*|END Title : TELOP MOTOR KISMI  |*/
 
@@ -340,7 +314,7 @@ public  class MotorControllerModule {
                //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
                 if(!Stop_Rotate)
                 {
-                     Double Apriltag_ID = VisionProcessing.Scan_Apriltag();
+                     float Apriltag_ID = VisionProcessing.Scan_Apriltag();
                      Boolean ID_perceived = Apriltag_ID == 2 || Apriltag_ID == 5 ? true : false;
                      if(!ID_perceived ) Rotate_Robot(0.3 , (TargetAngle - CurrentAngle) > 0 ? true : false );
                      else
@@ -373,9 +347,9 @@ public  class MotorControllerModule {
                  }
                 else
                 {
-                  //Eğer ki stop rotation işlemi true olmuşsa demekki Limelight tarafından ilgili APriltag algılanmış ve kaynak noktasu bulunmuştur 
+                  //Eğer ki stop rotation işlemi true olmuşsa demekki Limelight tarafından ilgili Apriltag algılanmış ve kaynak noktasu bulunmuştur 
                   //Buradaki işlemle de robotun April tag ile arasındaki mesafe çekilip bu mesafeye bir tık daha yakın bir noktada ve robotun baktığı doğrultudan bir setpoint oluşturup oraya gitme
-                  Double Distance = VisionProcessing.apriltag_Get_Distance_Y(0.2d);
+                 Double Distance = VisionProcessing.apriltag_Get_Distance_Y(9);
                  Double Current_X_Position = Math.cos(CurrentAngle) * (Distance - 0.5d);
                  Double Current_Y_Position = Math.sin(CurrentAngle) * (Distance - 0.5d);
                   if(Is_Point_Setted == false)
@@ -583,7 +557,7 @@ public  class MotorControllerModule {
         public void Rotate_Robot(double Turning_Speed,Boolean Positive_Rotation)
         {
              //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
-              Robot_Status_Situational(1);
+              Robot_Status_Situational();
               /*DEPLOYDA YORUM SATIRI */
             // Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
               /* */
@@ -757,36 +731,6 @@ public  class MotorControllerModule {
         /***************************/
 
        /* | Region : MOTOR DURUM İZLEME  |*/
-
-       //Motorlara verilen güçlerin stabilitesi ve max motor gücü farkı
-       //Periodic metot // Hem Teleop Hem de Autonomous için kullanılabilir
-       void Motor_Stability(Double max_Difference)
-       {
-         double Current_Difference = Math.abs(Motor_Power_List.get(0) - Motor_Power_List.get(1));
-         robot_Status = RobotStatus.DYNAMIC;
-        // Current Difference Control
-        //İLK ALTERNATİF
-         if(Current_Difference > max_Difference)
-         {
-            double Extra_Difference = (Current_Difference -max_Difference ) / 2;
-            Boolean extensial = Motor_Power_List.get(0) > Motor_Power_List.get(1);
-            if(extensial)
-            {
-               Motor_Power_List.set(0,Motor_Power_List.get(0)-Extra_Difference) ;
-            }
-            else
-            {
-               Motor_Power_List.set(0,Motor_Power_List.get(0)+Extra_Difference) ;
-            }
-         }
-       }
-      //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
-      void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
-      {
-         //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
-         Motor_Power_List.set(0, Desired_Speed);
-          Robot_Status_Situational(2);
-      }
       public ArrayList<Double> PID_parametres(double k_Proportional, double k_Integral, double k_derivative)
       {
         PID_Coefficients.set(0, k_Proportional) ;
@@ -806,16 +750,12 @@ public  class MotorControllerModule {
              Motor_Power_List.set(1, 0d);
             robot_Status = RobotStatus.IDLE;
           }
-          else 
-          {
-              robot_Status = RobotStatus.DYNAMIC;
-          }
+          else  robot_Status = RobotStatus.DYNAMIC;
         }
       }
-      public void Robot_Status_Situational(int Situation)
+      public void Robot_Status_Situational()
       {
-        if(Situation ==1 ) robot_Status =  RobotStatus.TURNING;
-        else if(Situation ==2 ) robot_Status =  RobotStatus.CONSTANTPOWER;
+         robot_Status =  RobotStatus.TURNING;
         Situational = true;
       }
        /*|Endregion :  MOTOR DURUM İZLEME |*/

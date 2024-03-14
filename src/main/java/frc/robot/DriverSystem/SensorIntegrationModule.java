@@ -4,9 +4,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
-
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.RobotController;
 
@@ -29,8 +29,8 @@ public  class SensorIntegrationModule  {
      private CANSparkMax Right_Leader;
      /*Sensör Tanımlamaları*/
      //Encoder Tanımalaması
-      private AbsoluteEncoder leftEncoder;
-     private  AbsoluteEncoder rightEncoder;
+      private RelativeEncoder leftEncoder;
+     private  RelativeEncoder rightEncoder;
      // navX tanımlaması
      private AHRS ahrs;
      
@@ -75,21 +75,6 @@ public  class SensorIntegrationModule  {
     /****************/
 
      /*| Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
-     //Encoder aracılığıyla Robotun Hızını Çekme
-    // Encoder sensörü
-     public Double[] Get_Motors_Speed()
-    {
-      Motor_Match();
-      // Sensör verilerini oku  
-      Double left_motor_speed =  Left_Leader.getEncoder().getVelocity();
-      Double right_motor_speed = Right_Leader.getEncoder().getVelocity();
-      // Sağ ve sol motor hızlarını ayrı ayrı hesapla
-      Double[] speed = new Double[2];
-      speed[0] = left_motor_speed;
-      speed[1] = right_motor_speed;
-      
-      return speed;
-   }
      //Encoder aracılığıyla Robotun toplam Alınan yolunu Çekme
     // Encoder sensörü
     public  Double Get_Motors_Overshoot()
@@ -105,8 +90,8 @@ public  class SensorIntegrationModule  {
     //Bu fonksiyon bizim robotumuzun motorlarında kullanacağımız Encoder'la bu sensör entegrasyonunda kullanacağımız Encoder'ı birbiriyle eşleştiriyor bu sayede Encoder sensörü ile şlem yaparken bir sıkıntı yaşamayacağız
     void Encoder_Match()
     {
-       //leftEncoder = Left_Leader.getEncoder();
-      // rightEncoder = Right_Leader.getEncoder();
+      //  leftEncoder = Left_Leader.getEncoder();
+      //  rightEncoder = Right_Leader.getEncoder();
     }
     /*|Title : Robotun X ve Y eksenlerindeki Yer değiştirmesini hesaplama|*/
     public Pose2d Robot_Init_Position()
@@ -193,13 +178,12 @@ public  class SensorIntegrationModule  {
       return Axis_Acceleration;
     }
     //navx velocity i m/s olarak veriyor (navx sayfası bu method deneysel diyor o yüzden düzgün çalışmayabilir.)
-    public Float[] Three_Axis_Velocity()
+    public Double Get_Velocity()
     {
       Float veloX = ahrs.getVelocityX();
       Float veloY = ahrs.getVelocityY();
-      Float veloZ = ahrs.getVelocityZ();
-      Float[] Axis_Velocity = {veloX, veloY, veloZ};
-      return Axis_Velocity;
+      Double Absolute_Velocity = Math.sqrt( (veloX*veloX) + (veloY*veloY));
+      return Absolute_Velocity;
     }
       public Float get_Height(){
       return ahrs.getDisplacementZ();

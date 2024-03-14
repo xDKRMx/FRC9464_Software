@@ -39,7 +39,7 @@ public  class ShooterModule {
      //Amp kısmı için değişkenler
      public Double Cuurent_AMP_Power = 0d;
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
-      public Double Target_AMP_power = 0.20;
+      public Double Target_AMP_power = 0.30;
       public double Target_Speaker_Power = 1;
       private Double Current_Shooter_Power = 0d;
       //Atış işlemi için yapılan boolean kontrolleri
@@ -123,7 +123,7 @@ public  class ShooterModule {
                 if("Amp".equals(Shooting_Type)) 
               {
                 Current_Shooter_Power = Target_AMP_power;
-                Shooter_Motor1.set(Target_AMP_power);
+                Shooter_Motor1.set(Target_Speaker_Power);
                 Shooter_Motor2.set(Target_AMP_power);
               } 
               else if("Speaker".equals(Shooting_Type))
@@ -144,6 +144,21 @@ public  class ShooterModule {
           }
          
      }
+
+       /* | End Title : CCRP sistemi ile nota fırlatma  |*/
+     // public void Contuinously_Computed_Released_Point()
+     // {
+     //      Double Current_Speed = Motor_Control_Module.Sensor_Integration.Get_Velocity();
+     //      int April_ID = Math.round((Motor_Control_Module.VisionProcessing.Scan_Apriltag()));
+     //      if(April_ID != 0)
+     //      {
+     //           Double Distance_Y = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_Y(April_ID);
+     //           Double Distance_X = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_X(Distance_Y);
+     //           Shoot_Subsystem("Speaker","Shooter");
+     //      }
+     // }
+      /* | End Region :  CCRP sistemi ile nota fırlatma   |*/
+
      /* | End Region : Notayı shoot etme sistemi  |*/
      /*|Region : Motorları Yavaşlatma | */
      /*Shooter kısımı için */
