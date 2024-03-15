@@ -253,11 +253,6 @@ public  class MotorControllerModule {
             /* CurrentAngle =Sensor_Integration.Get_Rotation_Angle(); */
             Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
             CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
-          //  CurrentAngle %= 360;
-          //  if(CurrentAngle < 0) CurrentAngle += 360;
-          //  CurrentAngle =  CurrentAngle /180;
-          
-           
            if(timer.get() < 2)
            {
             //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
@@ -274,21 +269,22 @@ public  class MotorControllerModule {
                if( Initial_Angle_Difference==999d)
                 {
                   System.out.println("Deneme");
-                  TargetAngle =CurrentAngle +  1;
-                  if(TargetAngle >2 ) TargetAngle -= 2;
-                   if(TargetAngle < 0 ) TargetAngle += 2;
+                  TargetAngle =Math.toDegrees(CurrentAngle) + 180;
+                  if(TargetAngle >360 ) TargetAngle -= 360;
+                  if(TargetAngle < 0 ) TargetAngle += 360;
+                  TargetAngle = Math.toRadians(TargetAngle);
                   Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
                 }
                 System.out.println((TargetAngle - CurrentAngle)* 180 + " Difference");
                if(!Stop_Rotate)
                {
-                if(Math.abs(CurrentAngle - TargetAngle)*180>  1d )
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))>  1d )
                 {
                     double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
                     Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
                 }
                }
-                if(Math.abs(CurrentAngle - TargetAngle)*180 < 1d )
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 1d )
                 {
                       Initial_Angle_Difference = 999d;
                       Stop_Rotating();

@@ -165,7 +165,7 @@ public  class SensorIntegrationModule  {
     // if(rotation_angle < 0) rotation_angle += 2;
     rotation_angle %= 360;
     if(rotation_angle < 0) rotation_angle += 360;
-    rotation_angle =  rotation_angle /180;
+    rotation_angle = Math.toRadians(rotation_angle);
     return rotation_angle;
     }
     //gyro ivmeyi G biriminde veriyor o yüzden m/s^2 ye çevirmek için 9.8 ile çarpıyoruz

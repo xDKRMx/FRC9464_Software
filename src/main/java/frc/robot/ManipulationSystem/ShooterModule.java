@@ -1,8 +1,6 @@
 package frc.robot.ManipulationSystem;
 
 import com.revrobotics.CANSparkMax;
-
-import edu.wpi.first.math.controller.PIDController;
 import frc.robot.DriverSystem.MotorControllerModule;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
@@ -35,12 +33,14 @@ public  class ShooterModule {
        private CANSparkMax Shooter_Motor1 = new CANSparkMax(5, MotorType.kBrushless);
        private CANSparkMax Shooter_Motor2 = new CANSparkMax(6, MotorType.kBrushless);
      //AMP kısımı notayı bırakma işlemi
-     private CANSparkMax Amp_Motor = new CANSparkMax(7, MotorType.kBrushed); 
+     private CANSparkMax Amp_Motor = new CANSparkMax(7, MotorType.kBrushless); 
      //Amp kısmı için değişkenler
-     public Double Cuurent_AMP_Power = 0d;
+     public Double Current_AMP_Power = 0d;
+     public Double Target_AMP_Intake = -0.7;
      //Hangi bölüme atış yapılacağına göre atış gücü ayarlama
-      public Double Target_AMP_power = 0.30;
+      public Double Target_AMP_power = 0.3;
       public double Target_Speaker_Power = 1;
+      public Double Target_Shooter_Intake =-0.4;
       private Double Current_Shooter_Power = 0d;
       //Atış işlemi için yapılan boolean kontrolleri
       private Boolean is_Shot_Fired;
@@ -84,26 +84,29 @@ public  class ShooterModule {
       {
           if(Shooting_Section == "Shooter")
           {
-           Shooter_Motor1.set(-0.2);
-          Shooter_Motor2.set(-0.2);
+           Shooter_Motor1.set(Target_Shooter_Intake);
+          Shooter_Motor2.set(Target_Shooter_Intake);
+           Current_Shooter_Power = Target_Shooter_Intake;
            is_Shot_Fired = true;
           Shooter_Status = ShooterMotorStatus.Dynamic;
+          
           }
           else if(Shooting_Section == "AMP") 
           {
-                Amp_Motor.set(-0.5);
+                Amp_Motor.set(Target_AMP_Intake);
+                Current_AMP_Power = Target_AMP_Intake;
                 AMP_Status = AMPmotorStatus.Dynamic;
+              
           }
       }
 
       public void Replacing_Note_Control()
       {
-       Is_Note_Entried = Motor_Control_Module.Sensor_Integration.Note_Touch_Control();
        // |* İkinci Alternatif *| nota algılama alternatifi Ultrasonic sensörü ile algılama
        //double Note_Distance = Motor_Control_Module.Sensor_Integration.Robot_Get_Distance();
        //Is_Note_Entried = (Note_Distance < 0.3) ? true : false;
        if(Shooter_Status != ShooterMotorStatus.Dynamic)
-        Ready_For_Shooting = Is_Note_Entried ? true : false;
+        Ready_For_Shooting =  true ;
       }
 
      /* | End Region : Notayı Çekme Algoritması |*/
@@ -123,7 +126,7 @@ public  class ShooterModule {
                 if("Amp".equals(Shooting_Type)) 
               {
                 Current_Shooter_Power = Target_AMP_power;
-                Shooter_Motor1.set(Target_Speaker_Power);
+                Shooter_Motor1.set(Target_AMP_power);
                 Shooter_Motor2.set(Target_AMP_power);
               } 
               else if("Speaker".equals(Shooting_Type))
@@ -139,7 +142,7 @@ public  class ShooterModule {
           else if(Shooting_Section == "AMP")
           {
             Amp_Motor.set(0.3);
-           Cuurent_AMP_Power = Amp_Motor.get();
+           Current_AMP_Power = Amp_Motor.get();
             AMP_Status = AMPmotorStatus.Dynamic;    
           }
          
@@ -171,7 +174,6 @@ public  class ShooterModule {
      //Robot, atış işlemini yaptıktan sonra atışı yapan shooter motorlarını yavaşlatmaya geçme algoritması
      public void SlowDown_Motor_Power(String Shooting_Section)
      {
-          System.out.println("DENEME");
           Thread thread = new Thread(new Runnable() {
                @Override
                public void run() {
@@ -180,18 +182,15 @@ public  class ShooterModule {
                     {
                        while (!Thread.currentThread().isInterrupted()) {
                         Shooter_Status = ShooterMotorStatus.Static;
-                        try (// PID denetleyicisi oluşturup buradaki katsayılar üzerinden motorları yavaşlatacağız
-                              PIDController pidController1 = new PIDController(0.2, 0.05, 0.01)) {
                              // Setpoint'i 0 olarak ayarlama
-                             pidController1.setSetpoint(0.0);
                              if (is_Shot_Fired) {
                               // PID çıktısını hesaplayın
-                              double output = pidController1.calculate(Current_Shooter_Power);
+                              Current_Shooter_Power =  Shooter_Motor1.get();
                               Current_Shooter_Power =  Current_Shooter_Power > 0 ? Current_Shooter_Power - 0.05 : Current_Shooter_Power + 0.05d;
-                              System.out.println(Current_Shooter_Power + " Shooter");
+                                System.out.println(Current_Shooter_Power + " Shooter");
                               //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
-                               Shooter_Motor1.set(output);
-                               Shooter_Motor2.set(output);
+                               Shooter_Motor1.set(Current_Shooter_Power);
+                               Shooter_Motor2.set(Current_Shooter_Power);
                               //Eşik değerin altında bir güçte iken motorlar daha fazla bekletmeyip direkt durduruyoruz
                               if (Math.abs(Current_Shooter_Power) < 0.05) {
                                   stopShooting("Shooter");
@@ -202,26 +201,20 @@ public  class ShooterModule {
                                } catch (InterruptedException e) {
                                    Thread.currentThread().interrupt();
                               }
-                             }
                         }
                       } 
                     }
                     else if(Shooting_Section == "AMP" && AMP_Status == AMPmotorStatus.Dynamic)
                     {
                         while (!Thread.currentThread().isInterrupted()) {
-                        AMP_Status = AMPmotorStatus.Static;
-                        try (// PID denetleyicisi oluşturup buradaki katsayılar üzerinden motorları yavaşlatacağız
-                              PIDController pidController1 = new PIDController(0.2, 0.05, 0.01)) {
-                             // Setpoint'i 0 olarak ayarlama
-                              pidController1.setSetpoint(0.0);
-                              // PID çıktısını hesaplayın
-                              double output = pidController1.calculate(Cuurent_AMP_Power);
-                              Cuurent_AMP_Power =  Cuurent_AMP_Power > 0 ? Cuurent_AMP_Power - 0.05 : Cuurent_AMP_Power + 0.05d;
-                              System.out.println(Cuurent_AMP_Power + " Shooter");
+                              AMP_Status = AMPmotorStatus.Static;
+                              Current_AMP_Power = Amp_Motor.get();
+                              Current_AMP_Power =  Current_AMP_Power > 0 ? Current_AMP_Power - 0.05 : Current_AMP_Power + 0.05d;
+                             System.out.println(Current_AMP_Power + " Shooter");
                               //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
-                               Amp_Motor.set(output);
+                               Amp_Motor.set(Current_AMP_Power);
                               //Eşik değerin altında bir güçte iken motorlar daha fazla bekletmeyip direkt durduruyoruz
-                              if (Math.abs(Cuurent_AMP_Power) < 0.05) {
+                              if (Math.abs(Current_AMP_Power) < 0.05) {
                                   stopShooting("AMP");
                                   Thread.currentThread().interrupt();
                               }
@@ -230,7 +223,7 @@ public  class ShooterModule {
                                } catch (InterruptedException e) {
                                    Thread.currentThread().interrupt();
                               }
-                        }
+                      
                       } 
                     }
                }
@@ -250,7 +243,7 @@ public  class ShooterModule {
           }
           else if(Shooting_Section == "AMP")
           {
-             Cuurent_AMP_Power = 0d;
+             Current_AMP_Power = 0d;
            Amp_Motor.set(0.0);
           }
      }
