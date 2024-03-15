@@ -33,7 +33,7 @@ public  class ShooterModule {
        private CANSparkMax Shooter_Motor1 = new CANSparkMax(5, MotorType.kBrushless);
        private CANSparkMax Shooter_Motor2 = new CANSparkMax(6, MotorType.kBrushless);
      //AMP kısımı notayı bırakma işlemi
-     private CANSparkMax Amp_Motor = new CANSparkMax(7, MotorType.kBrushless); 
+     private CANSparkMax Amp_Motor = new CANSparkMax(7, MotorType.kBrushed); 
      //Amp kısmı için değişkenler
      public Double Current_AMP_Power = 0d;
      public Double Target_AMP_Intake = -0.7;
@@ -131,8 +131,8 @@ public  class ShooterModule {
               } 
               else if("Speaker".equals(Shooting_Type))
               {
-                  Current_Shooter_Power = Target_Speaker_Power;
-                 Shooter_Motor1.set(Target_Speaker_Power);
+                Current_Shooter_Power = Target_Speaker_Power;
+                Shooter_Motor1.set(Target_Speaker_Power);
                 Shooter_Motor2.set(Target_Speaker_Power);
               } 
                is_Shot_Fired = true;
@@ -153,14 +153,12 @@ public  class ShooterModule {
       {
            
         Double Current_Speed = Motor_Control_Module.Sensor_Integration.Get_Velocity();
-           Double Max_Shooting_Distance_Y =  (Current_Speed*50) +300d;
+           Double Max_Shooting_Distance_Y =  (Current_Speed*50) + 300d;
            Double Min_Shooting_Distance_Y =  (Current_Speed*50) + 50d;
-           
            int April_ID = Math.round((Motor_Control_Module.VisionProcessing.Scan_Apriltag()));
            if(April_ID != 0)
            {
                 Double Distance_Y = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_Y(7);
-                
                 if(Max_Shooting_Distance_Y > Distance_Y && Min_Shooting_Distance_Y < Distance_Y)
                 Shoot_Subsystem("Speaker","Shooter");
            }
@@ -210,7 +208,7 @@ public  class ShooterModule {
                               AMP_Status = AMPmotorStatus.Static;
                               Current_AMP_Power = Amp_Motor.get();
                               Current_AMP_Power =  Current_AMP_Power > 0 ? Current_AMP_Power - 0.05 : Current_AMP_Power + 0.05d;
-                             System.out.println(Current_AMP_Power + " Shooter");
+                             System.out.println(Current_AMP_Power + "AMP");
                               //PID çıktısını hem üst hem de alt shooter motor için verdik burada değerleri aynı değişken değerlerini veriyoruz çünkü motorların aynı güçte notayı fırlatıp aynı güçte motorların yavaşlaması lazım
                                Amp_Motor.set(Current_AMP_Power);
                               //Eşik değerin altında bir güçte iken motorlar daha fazla bekletmeyip direkt durduruyoruz
@@ -243,7 +241,7 @@ public  class ShooterModule {
           }
           else if(Shooting_Section == "AMP")
           {
-             Current_AMP_Power = 0d;
+           Current_AMP_Power = 0d;
            Amp_Motor.set(0.0);
           }
      }

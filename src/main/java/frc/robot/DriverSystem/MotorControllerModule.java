@@ -228,7 +228,7 @@ public  class MotorControllerModule {
           //System.out.println(Motor_Power_Control + " " + robot_Status);
           Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
          //  System.out.println(Left_Leader.get() + " Left motor " + Right_Leader.get() + " right ");
-         double Deneme = VisionProcessing.Scan_Apriltag();
+         
          }
        /*|END Title : TELOP MOTOR KISMI  |*/
 
@@ -275,7 +275,6 @@ public  class MotorControllerModule {
                   TargetAngle = Math.toRadians(TargetAngle);
                   Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
                 }
-                System.out.println((TargetAngle - CurrentAngle)* 180 + " Difference");
                if(!Stop_Rotate)
                {
                 if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))>  1d )
@@ -290,18 +289,18 @@ public  class MotorControllerModule {
                       Stop_Rotating();
                       reached_Angle = true;
                       //*deploy */
-                    //  Motor_Power_List.set(0, 0d);
+                      Motor_Power_List.set(0, 0d);
                       /* */
                       Motor_Power_List.set(1, 0d);
                 }
                }
            }
-           else if(timer.get() >=4 && timer.get() <4.4)
+           else if(timer.get() >=4 && timer.get() <5.4)
            {
              //Robotun taksi yapma işlemi
-             Motor_Power_List.set(0,0.3);
+             Motor_Power_List.set(0,-0.2);
              /*Deployda silinecek */
-             Motor_Power_List.set(1,0.3);
+            // Motor_Power_List.set(1,0.2);
              //Bir sonraki işlem için ön hazırlık
              Stop_Rotate = false;
            } 
