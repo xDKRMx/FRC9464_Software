@@ -74,7 +74,8 @@ public  class TelemetryModule {
       //   SmartDashboard.putNumber("X APRİL", DistanceX);
       //   SmartDashboard.putNumber("Y APRİL", DistanceY);
       //   SmartDashboard.putNumber("Velocity", Velocity);
-      }
+            SmartDashboard.putNumber("Velocity", _Motor_Controller.Sensor_Integration.Get_Velocity());
+   }
       public void Defining_Variables_Smart_Dashboard()
       {
          //SmartDashBoard'da girilecek değerleri tanımlıyoruz

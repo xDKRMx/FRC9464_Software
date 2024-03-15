@@ -117,8 +117,8 @@ public  class InputProcessingModule {
           else if(Active_button==1)  Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
           else if(Active_POV==180)Shooter_Module.Intaking_Note("AMP");
           else if(Active_POV==0) Shooter_Module.Shoot_Subsystem("","AMP");
-          
-          else if(Active_POV==270) Shooter_Module.Shoot_Subsystem("Speaker" ,"Shooter");
+          //CCRP
+          else if(Active_POV==270) Shooter_Module.Contuinously_Computed_Released_Point();
           else
           {
             if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");

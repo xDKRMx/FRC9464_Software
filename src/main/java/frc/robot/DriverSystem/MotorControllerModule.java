@@ -193,7 +193,7 @@ public  class MotorControllerModule {
                Double Absolute_Left_Motor_Power = rampMotorInput(currentLeftInput,Speed_Input,0.1f);
                Double Absolute_Right_Motor_Power = rampMotorInput(currentRightInput,Rotate_Input,0.1f);
                 Motor_Power_List.set(0, Absolute_Left_Motor_Power);
-                Motor_Power_List.set(1,Absolute_Right_Motor_Power );
+                Motor_Power_List.set(1, Absolute_Right_Motor_Power );
              }
            }
            else

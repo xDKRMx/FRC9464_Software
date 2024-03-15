@@ -146,17 +146,23 @@ public  class ShooterModule {
      }
 
        /* | End Title : CCRP sistemi ile nota fırlatma  |*/
-     // public void Contuinously_Computed_Released_Point()
-     // {
-     //      Double Current_Speed = Motor_Control_Module.Sensor_Integration.Get_Velocity();
-     //      int April_ID = Math.round((Motor_Control_Module.VisionProcessing.Scan_Apriltag()));
-     //      if(April_ID != 0)
-     //      {
-     //           Double Distance_Y = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_Y(April_ID);
-     //           Double Distance_X = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_X(Distance_Y);
-     //           Shoot_Subsystem("Speaker","Shooter");
-     //      }
-     // }
+      public void Contuinously_Computed_Released_Point()
+      {
+           
+        Double Current_Speed = Motor_Control_Module.Sensor_Integration.Get_Velocity();
+           Double Max_Shooting_Distance_Y =  (Current_Speed*50) +300d;
+           Double Min_Shooting_Distance_Y =  (Current_Speed*50) + 50d;
+           
+           int April_ID = Math.round((Motor_Control_Module.VisionProcessing.Scan_Apriltag()));
+           if(April_ID != 0)
+           {
+                Double Distance_Y = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_Y(7);
+                
+                if(Max_Shooting_Distance_Y > Distance_Y && Min_Shooting_Distance_Y < Distance_Y)
+                Shoot_Subsystem("Speaker","Shooter");
+           }
+      }
+
       /* | End Region :  CCRP sistemi ile nota fırlatma   |*/
 
      /* | End Region : Notayı shoot etme sistemi  |*/
