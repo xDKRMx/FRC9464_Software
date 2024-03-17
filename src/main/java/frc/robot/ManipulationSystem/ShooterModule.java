@@ -157,10 +157,10 @@ public  class ShooterModule {
            Double Min_Shooting_Distance_Y =  (Current_Speed*50) + 50d;
            Double Horizontal_Offset = Motor_Control_Module.VisionProcessing.getTargetOffsetX();
            int April_ID = Math.round((Motor_Control_Module.VisionProcessing.Scan_Apriltag()));
-           if(April_ID != 0)
+           if(April_ID == 4 || April_ID == 7)
            {
                 Double Distance_Y = Motor_Control_Module.VisionProcessing.apriltag_Get_Distance_Y(April_ID);
-                if(Max_Shooting_Distance_Y > Distance_Y && Min_Shooting_Distance_Y < Distance_Y && Horizontal_Offset < 0)
+                if(Max_Shooting_Distance_Y > Distance_Y && Min_Shooting_Distance_Y < Distance_Y && Horizontal_Offset < -5)
                 Shoot_Subsystem("Speaker","Shooter");
            }
       }
