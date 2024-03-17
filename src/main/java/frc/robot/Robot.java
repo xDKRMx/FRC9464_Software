@@ -5,6 +5,8 @@
 package frc.robot;
 
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.DriverSystem.*;
 import frc.robot.ManipulationSystem.*;
@@ -35,6 +37,7 @@ public TelemetryModule Telemetry_Class = new  TelemetryModule(Motor_Controller_C
 // public ShooterModule Shooter_Class = new  ShooterModule();
 public ClimberModule Climber_Class = new  ClimberModule(Motor_Controller_Class);
 public ElevatorModule Elavator_Class = new  ElevatorModule();
+UsbCamera driverCam;
 
  // *************************************************//
  /* Header  Diğer değişkenler ve sınıflar*/
@@ -47,6 +50,8 @@ public ElevatorModule Elavator_Class = new  ElevatorModule();
   }
   @Override
   public void robotInit() {
+    driverCam = CameraServer.startAutomaticCapture();
+    
 
   }
 
