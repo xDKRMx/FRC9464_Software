@@ -20,7 +20,7 @@ public  class VisionProcessing
  private float April_Tag_ID =0;
  public Boolean Tag_Detected;
  //AprilTag Yükseklikleri
- Double[] Apriltag_List = new Double[16];
+ int[] Apriltag_List = new int[16];
  //Algılanan Apriltag ile yatay ve dikey mesafeleri
  private Double Distance_Y =9999d;
  private Double Distance_X =9999d;
@@ -74,22 +74,22 @@ public  class VisionProcessing
 
     //Apriltaglerin default yükseklikleri
     //CM cinsinden
-   Apriltag_List[0] =  127d; 
-   Apriltag_List[1] =  127d; 
-   Apriltag_List[2] =  137d; 
-   Apriltag_List[3] =  137d; 
-   Apriltag_List[4] =  127d; 
-   Apriltag_List[5] =  127d; 
-   Apriltag_List[6] =  137d; 
-   Apriltag_List[7] =  137d; 
-   Apriltag_List[8] =  144d; 
-   Apriltag_List[9] =  144d; 
-   Apriltag_List[10] =  126d; 
-   Apriltag_List[11] =  126d; 
-   Apriltag_List[12] =  126d; 
-   Apriltag_List[13] =  126d;
-   Apriltag_List[14] =  126d; 
-   Apriltag_List[15] =  126d; 
+   Apriltag_List[0] =  127; 
+   Apriltag_List[1] =  127; 
+   Apriltag_List[2] =  137; 
+   Apriltag_List[3] =  137; 
+   Apriltag_List[4] =  127; 
+   Apriltag_List[5] =  127; 
+   Apriltag_List[6] =  137; 
+   Apriltag_List[7] =  137; 
+   Apriltag_List[8] =  144; 
+   Apriltag_List[9] =  144; 
+   Apriltag_List[10] =  126; 
+   Apriltag_List[11] =  126; 
+   Apriltag_List[12] =  126; 
+   Apriltag_List[13] =  126;
+   Apriltag_List[14] =  126; 
+   Apriltag_List[15] =  126; 
   }
 
   public boolean hasValidTarget(){
