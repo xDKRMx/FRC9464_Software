@@ -302,46 +302,44 @@ public  class MotorControllerModule {
                       Initial_Angle_Difference = 999d;
                       Stop_Rotating();
                       reached_Angle = true;
-                      //*deploy */
-                      Motor_Power_List.set(0, 0d);
-                      /* */
                       Motor_Power_List.set(1, 0d);
                 }
                }
            }
-           else if(timer.get() >=4.5 && timer.get() < 15)
+           else if(timer.get() >=4.5 && timer.get() < 5.5)
            {
-             Stop_Rotate = false;
-             if(timer.get() >=4.5 && timer.get() <=7)
-             {
-                Tag_Control =  VisionProcessing.Scan_Apriltag() == 14 || VisionProcessing.Scan_Apriltag() == 13 ? true : false;
-                Motor_Power_List.set(0, 0.2d);
-             } 
-             else 
-             {
-              if(!Tag_Control) 
-              {
-                 Motor_Power_List.set(0, 0d); 
-                 Motor_Power_List.set(1, 0d);
-              }
-              else
-              {
-                int Tag_ID =(int) VisionProcessing.Scan_Apriltag();
-                if(Initial_Distance_April == 999d) Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
-                Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
-               Double Limit_Distance = 290d;
-               if(Distance_April - 50 >Limit_Distance)
-               {
-                Double Power_Ratio = ((Distance_April) / Initial_Distance_April)/ 5;
-                Motor_Power_List.set(0, Power_Ratio); 
-               }
-               else
-               {
-                 Motor_Power_List.set(0, 0d); 
-                 Motor_Power_List.set(1, 0d);
-               }
-              }
-             } 
+             Motor_Power_List.set(0, -0.2d); 
+            //  Stop_Rotate = false;
+            //  if(timer.get() >=4.5 && timer.get() <=7)
+            //  {
+            //     Tag_Control =  VisionProcessing.Scan_Apriltag() == 14 || VisionProcessing.Scan_Apriltag() == 13 ? true : false;
+            //     Motor_Power_List.set(0, 0.2d);
+            //  } 
+            //  else 
+            //  {
+            //   if(!Tag_Control) 
+            //   {
+            //      Motor_Power_List.set(0, 0d); 
+            //      Motor_Power_List.set(1, 0d);
+            //   }
+            //   else
+            //   {
+            //     int Tag_ID =(int) VisionProcessing.Scan_Apriltag();
+            //     if(Initial_Distance_April == 999d) Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
+            //     Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
+            //    Double Limit_Distance = 290d;
+            //    if(Distance_April - 50 >Limit_Distance)
+            //    {
+            //     Double Power_Ratio = ((Distance_April) / Initial_Distance_April)/ 5;
+            //     Motor_Power_List.set(0, Power_Ratio); 
+            //    }
+            //    else
+            //    {
+            //      Motor_Power_List.set(0, 0d); 
+            //      Motor_Power_List.set(1, 0d);
+            //    }
+            //   }
+            //  } 
            }
            Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
        }

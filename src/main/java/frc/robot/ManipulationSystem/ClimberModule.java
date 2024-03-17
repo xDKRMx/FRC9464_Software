@@ -24,8 +24,8 @@ public  class ClimberModule {
       Double[] Initial_Axis_Angles;
       float Default_Height;
       //Teleskopik kolu yönetecek motor ve solenoid
-      private CANSparkMax Telescobic_Motor_Left = new CANSparkMax(8,MotorType.kBrushless);
-       private CANSparkMax Telescobic_Motor_Right = new CANSparkMax(9,MotorType.kBrushless);
+     // private CANSparkMax Telescobic_Motor_Left = new CANSparkMax(8,MotorType.kBrushless);
+     // private CANSparkMax Telescobic_Motor_Right = new CANSparkMax(9,MotorType.kBrushless);
       //Climbing Değişkenleri
       //Limit
       private Double Limit_Height = 20d; // cm cinsinden;
@@ -56,18 +56,18 @@ public  class ClimberModule {
      }
 
     public void Climb(String mode, String motor){
-      if(mode == "climb"){
-        if(motor == "left")
-        Telescobic_Motor_Left.set(0.5);
-        else if(motor == "right")
-        Telescobic_Motor_Right.set(0.5);
-      }
-      else if(mode =="descend"){
-        if(motor == "left")
-        Telescobic_Motor_Left.set(-0.5);
-        else if(motor == "right")
-        Telescobic_Motor_Right.set(-0.5);
-      }
+      // if(mode == "climb"){
+      //   if(motor == "left")
+      //   Telescobic_Motor_Left.set(0.5);
+      //   else if(motor == "right")
+      //   Telescobic_Motor_Right.set(0.5);
+      // }
+      // else if(mode =="descend"){
+      //   if(motor == "left")
+      //   Telescobic_Motor_Left.set(-0.5);
+      //   else if(motor == "right")
+      //   Telescobic_Motor_Right.set(-0.5);
+      // }
     }
        
      

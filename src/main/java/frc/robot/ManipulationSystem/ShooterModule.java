@@ -141,7 +141,7 @@ public  class ShooterModule {
           }
           else if(Shooting_Section == "AMP")
           {
-            Amp_Motor.set(0.3);
+            Amp_Motor.set(1);
            Current_AMP_Power = Amp_Motor.get();
             AMP_Status = AMPmotorStatus.Dynamic;    
           }
