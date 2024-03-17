@@ -1,5 +1,4 @@
 package frc.robot.ManipulationSystem;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -16,9 +15,15 @@ public  class VisionProcessing
   private static NetworkTableEntry ledMode;
   private static NetworkTableEntry tvert;
   private static NetworkTableEntry thor;
+
 //Apriltag verileri çekme
- private double April_Tag_ID =0;
+ private float April_Tag_ID =0;
  public Boolean Tag_Detected;
+ //AprilTag Yükseklikleri
+ int[] Apriltag_List = new int[16];
+ //Algılanan Apriltag ile yatay ve dikey mesafeleri
+ private Double Distance_Y =9999d;
+ private Double Distance_X =9999d;
 
   //enum lar  limelight sensörünün farklı modelarını ve fonkisyonlarını kontrol etmeye yarıyor. içerisinde iki fonksiyondan ilki ledin nasıl çalışacağını belirliyor. İkincisi ise mod verisi çekiyor. 
   private enum LEDMode 
@@ -66,6 +71,25 @@ public  class VisionProcessing
     camMode = table.getEntry("camMode"); // sensörün çalışma modu (0-1).
     tvert = table.getEntry("tvert");// algılanan cismin sınırlayıcı kutusunun dikey boyu
     thor = table.getEntry("thor");// algılanan cismin sınırlayıcı kutusunun yatay boyu
+
+    //Apriltaglerin default yükseklikleri
+    //CM cinsinden
+   Apriltag_List[0] =  127; 
+   Apriltag_List[1] =  127; 
+   Apriltag_List[2] =  137; 
+   Apriltag_List[3] =  137; 
+   Apriltag_List[4] =  127; 
+   Apriltag_List[5] =  127; 
+   Apriltag_List[6] =  137; 
+   Apriltag_List[7] =  137; 
+   Apriltag_List[8] =  144; 
+   Apriltag_List[9] =  144; 
+   Apriltag_List[10] =  126; 
+   Apriltag_List[11] =  126; 
+   Apriltag_List[12] =  126; 
+   Apriltag_List[13] =  126;
+   Apriltag_List[14] =  126; 
+   Apriltag_List[15] =  126; 
   }
 
   public boolean hasValidTarget(){
@@ -89,8 +113,6 @@ public  class VisionProcessing
   public double getTargetArea() {
     return ta.getDouble(0.0);
   }
-
-
   // led modunu ayarlama metodu -çağırırken setLEDMode(LEDMode.ON) tarzında yapılıyor.
   public void setLEDMode(LEDMode mode) {
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(mode.getValue());
@@ -156,37 +178,33 @@ public  class VisionProcessing
   }
 
   //Apriltaglerin algılanması için Scan işlemi 
-  public Double Scan_Apriltag()
+  public float Scan_Apriltag()
   {
-    Double Tag_Id = 0d;
-    Double OffsetX  = getTargetOffsetX();
-    Double OffsetY  = getTargetOffsetY();
-    if((OffsetX < 5 && OffsetX > -5) &&(OffsetY < 5 && OffsetY > -5) )
-    {
+    float Tag_Id = 0f;
     //Apriltag Algılama algoritması
-    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(10);
+    Tag_Id =NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getFloat(0f);
     April_Tag_ID = Tag_Id != 0 ? Tag_Id : 0;
     Tag_Detected = April_Tag_ID != 0 ? true : false;
     return April_Tag_ID;
-    }
-    else
-    {
-      return Tag_Id;
-    }
-  
   }
-  //Algılanana Apriltag'in robota uzaklığını ölçme
-  public Double Apriltag_Get_Distance(Double TagAngle,Double CameraAngle,double Camera_Height, Double Apriltag_height)
+  //Algılanan Apriltag'in robota uzaklığını ölçme
+  public Double apriltag_Get_Distance_Y(int Apriltag_ID)
   {
-    double Distance = 0;
+    if(Apriltag_ID != 0)
+    {
+   double CameraAngle = 0d;
+    double Camera_Height = 45d;
+    double Apriltag_height = Apriltag_List[Apriltag_ID -1];
     if(Tag_Detected)
     {
-      double angleToTagDegrees = CameraAngle + getTargetOffsetY() ;
-      double angleToTagRadians = angleToTagDegrees * (3.14159 / 180.0);
+      double angleToTagDegrees = CameraAngle + getTargetOffsetY();
+      double angleToTagRadians =Math.toRadians(angleToTagDegrees);
       //calculate distance
-      Distance= (Apriltag_height - Camera_Height) / Math.tan(angleToTagRadians);
+      Distance_Y= ( Apriltag_height- Camera_Height) / Math.tan(angleToTagRadians);
     }
-    else Distance = 0d;
-    return Distance;
+    else Distance_Y = 9999d;
+    return Distance_Y;
+    }
+    else return 9999d;
   }
 }

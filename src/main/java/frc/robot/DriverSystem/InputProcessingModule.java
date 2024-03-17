@@ -16,6 +16,7 @@ public  class InputProcessingModule {
      //Joystick tanımlamaları
      Joystick Joystick = new Joystick(0);
      private int Active_button = -1;
+     private int Active_POV = -1;
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
      private ShooterModule Shooter_Module;
@@ -43,8 +44,7 @@ public  class InputProcessingModule {
          {
           //Periyodik olarak butonların basılıp basılmadığına dair kontrolü 
            Joystick_Button_Processing();
-           //PID ile motor kontrolünü sağlayacak fonksiyonun çağırılması
-           PID_Motor_Speed();
+           Joystick_POV_Processing();
            //Rotate kontrol
            Rotate_Control();
            //Shoot kontrolü
@@ -53,6 +53,7 @@ public  class InputProcessingModule {
         }
       
        }
+      
 
       /*|Endregion : JOYSTICK GİRİŞ İŞLEMLERİ |*/
       /***************************/
@@ -69,26 +70,33 @@ public  class InputProcessingModule {
           else if(Joystick.getRawButton(6)) Active_button = 6;
           else if(Joystick.getRawButton(7)) Active_button = 7;
           else if(Joystick.getRawButton(8)) Active_button = 8;
+          else if(Joystick.getRawButton(9)) Active_button = 9;
+          else if(Joystick.getRawButton(10)) Active_button = 10;
+          else if(Joystick.getRawButton(11)) Active_button = 11;
+          else if(Joystick.getRawButton(12)) Active_button = 12;
+          else if(Joystick.getRawButton(13)) Active_button = 13;
+          else if(Joystick.getRawButton(14)) Active_button = 14;
+          else if(Joystick.getRawButton(15)) Active_button = 15;
+          else if(Joystick.getRawButton(16)) Active_button = 16;
           else Active_button = -1;
           return Active_button;
       }
-       //PID çağırma(sağ ikinci düğme)
-        public void PID_Motor_Speed(){
-          String pow_control_ipm = "";
-          if(Active_button==1)pow_control_ipm="Constant";
-          else{
-          pow_control_ipm="Stability";
-          Motor_Controller_Module.Situational = false;
-          }
-          Motor_Controller_Module.Motor_Power_Control=pow_control_ipm;
-      }
+        public int Joystick_POV_Processing(){
+          if(Joystick.getPOV() == 0) Active_POV = 0;
+          else if (Joystick.getPOV() == 90 ) Active_POV = 90;
+          else if (Joystick.getPOV() == 180) Active_POV = 180;
+          else if (Joystick.getPOV() == 270) Active_POV = 270;
+          else Active_POV = -1;
+          return Active_POV;
+
+        }
 
         //Rotate (+ için sol 1, - için sağ 3)
         public void Rotate_Control() {
           //Joystick 1'de trigger'ın basılıp basılmamasına göre döndürme
-          if(Active_button == 7) Motor_Controller_Module.Rotate_Robot(1,true);
+          if(Active_button == 15) Motor_Controller_Module.Rotate_Robot(1,true);
           //Negatif yön
-          else if(Active_button == 8)Motor_Controller_Module.Rotate_Robot(1,false);
+          else if(Active_button == 16)Motor_Controller_Module.Rotate_Robot(1,false);
           else Motor_Controller_Module.Stop_Rotating();
 
           //Joystick 2'de triggerın basılma oranına göre döndürme
@@ -104,12 +112,14 @@ public  class InputProcessingModule {
         //Shooting Sistemi (L1 için atış AMP'ye, R1 için atış Hopörlöre yapılır) 
         public void Shoot_Note()
         {
-          if(Active_button==4) Shooter_Module.Intaking_Note("Shooter");
-          else if(Active_button==5) Shooter_Module.Shoot_Subsystem("Amp","Shooter");
-          else if(Active_button==6)  Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
-          else if(Active_button==2)Shooter_Module.Intaking_Note("AMP");
-          else if(Active_button==3) Shooter_Module.Shoot_Subsystem("","AMP");
-          else 
+          if(Active_button==2) Shooter_Module.Intaking_Note("Shooter");
+          else if(Active_POV==90) Shooter_Module.Shoot_Subsystem("Amp","Shooter");
+          else if(Active_button==1)  Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
+          else if(Active_POV==180)Shooter_Module.Intaking_Note("AMP");
+          else if(Active_POV==0) Shooter_Module.Shoot_Subsystem("","AMP");
+          //CCRP
+          else if(Active_POV==270) Shooter_Module.Contuinously_Computed_Released_Point();
+          else
           {
             if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
              if(Shooter_Module.AMP_Status == AMPmotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("AMP");

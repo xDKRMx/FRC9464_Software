@@ -59,9 +59,21 @@ public  class TelemetryModule {
          double D =  _Motor_Controller.Sensor_Integration.Get_Rotation_Angle();
          SmartDashboard.putNumber("ANGLE :   ", D);
          //Robotun motorlarındaki toplam enerji tüketimi
-         double Energy_Consumption = _Motor_Controller.Get_Energy_Consuption();
-         SmartDashboard.putNumber("Energy Consumption  ", Energy_Consumption);
-      }
+         // double Energy_Consumption = _Motor_Controller.Get_Energy_Consuption();
+         // SmartDashboard.putNumber("Energy Consumption  ", Energy_Consumption);
+            int April_TAG = Math.round(_Motor_Controller.VisionProcessing.Scan_Apriltag());
+            if(April_TAG > 0)
+            {
+               double DistanceY =  _Motor_Controller.VisionProcessing.apriltag_Get_Distance_Y(April_TAG);
+               SmartDashboard.putNumber("Y APRİL", DistanceY);
+            }
+      //     double DistanceX = _Motor_Controller.VisionProcessing.apriltag_Get_Distance_X(DistanceY);
+      //        double Velocity = _Motor_Controller.Sensor_Integration.Get_Velocity();
+      //   SmartDashboard.putNumber("X APRİL", DistanceX);
+      //   SmartDashboard.putNumber("Y APRİL", DistanceY);
+      //   SmartDashboard.putNumber("Velocity", Velocity);
+            SmartDashboard.putNumber("Velocity", _Motor_Controller.Sensor_Integration.Get_Velocity());
+   }
       public void Defining_Variables_Smart_Dashboard()
       {
          //SmartDashBoard'da girilecek değerleri tanımlıyoruz

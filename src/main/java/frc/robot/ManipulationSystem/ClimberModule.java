@@ -18,17 +18,18 @@ public  class ClimberModule {
       //Ek modüllerin tanımlaması
       private MotorControllerModule Motor_Control_Module;
       //PID dengesi
-      private PIDController Heigh_Balance;
+      private PIDController Height_Balance;
       private PIDController Torque_Balance;
       //Zincire tırmanma öncesi başlangıç değerleri
       public Boolean Climbing_Started = false;
       Double[] Initial_Axis_Angles;
       float Default_Height;
       //Teleskopik kolu yönetecek motor ve solenoid
-     // private CANSparkMax Telescobic_Motor = new CANSparkMax(6,MotorType.kBrushless);
+      private CANSparkMax Telescobic_Motor_Left = new CANSparkMax(8,MotorType.kBrushless);
+       private CANSparkMax Telescobic_Motor_Right = new CANSparkMax(9,MotorType.kBrushless);
       //Climbing Değişkenleri
       //Limit
-      private Double Limit_Heigt = 20d; // cm cinsinden;
+      private Double Limit_Height = 20d; // cm cinsinden;
       Double Limit_Deviation = 2d; // cm cinsinden;
       //Current ve durum değişkenleri
       Double[] Current_Deviation;
@@ -62,7 +63,6 @@ public  class ClimberModule {
           if( Math.abs(Current_Height)> 0.05)
           {
             Elevator_System();
-           Balance_Control();
           }
           else
           {
@@ -84,22 +84,5 @@ public  class ClimberModule {
         Climber_Motor_Power = Math.max(-0.5, Math.min(0.5, Climber_Motor_Power));
        // Telescobic_Motor.set(Climber_Motor_Power);
      }
-     public void Balance_Control()
-     {
-      Double[] Current_Axis_Angles = Motor_Control_Module.Sensor_Integration.Three_Axis_Rotation();
-      for(int a = 0 ; a < 3 ; a++)
-      {
-       Current_Deviation[a] = Current_Axis_Angles[a] - Initial_Axis_Angles[a];
-       if(Math.abs(Current_Deviation[a] ) >Limit_Deviation)
-       {
-        Double Balance_Power =  Limit_Deviation / Current_Deviation[a]  ;
-        Motor_Control_Module.Set_Power(-Balance_Power);
-        Motor_Control_Module.robot_Status = RobotStatus.TURNING;
-       }
-       else
-       {
-        Motor_Control_Module.Stop_Rotating();
-       }
-      }
-     }
+     
 }

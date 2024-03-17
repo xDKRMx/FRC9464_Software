@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-import javax.lang.model.util.ElementScanner14;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -18,9 +16,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 //Simülasyonu çalıştırmak için Keyboard Analog importu (Geçici)
-import frc.robot.DriverSystem.AdditionalClasses.Pose2dSendable;
 
 
 //BU ENUM yapısı robotun motor durum kontrolünde kullanılacaktır ve ilerleyen aşamalarda sensör entegrasyonundaki veirlerle birlikte sağlanan değerler enum'daki robotun durumna göre şekillenecektir
@@ -29,8 +25,7 @@ public  class MotorControllerModule {
        public enum RobotStatus {
         DYNAMIC,
         IDLE,
-        TURNING,
-        CONSTANTPOWER
+        TURNING
        }
      //Bu class bir nevi bizim için bir çok class içerisinde kullanacağımız ve robottaki bir çok kodun temelini oluşturacak bir class. 
      // Bu class içerisindeki işlemler bir nevi robotun içerisindeki temel dinamikler diyebilirim bu temel dinamiklere örnek olarak sürüş, dönme hareket durma ivmeli hareket vs.
@@ -78,6 +73,9 @@ public  class MotorControllerModule {
      private double Initial_Angle_Difference = 999d;
      double TargetAngle;
      double CurrentAngle;
+     //Otonom kısım Limelight'ları
+     private Double Initial_Distance_April = 999d;
+     private Double Distance_April = 0d;
      //ODOMETRİ HESABI İLE
      Pose2d Current_Point;
      Pose2d Setpoint;
@@ -114,7 +112,8 @@ public  class MotorControllerModule {
      }
      /***************************/
 
-      /* | Region : MOTOR VERİELERİ ÇEKME  |*/
+     
+     /* | Region : MOTOR VERİELERİ ÇEKME  |*/
       //Sensör entegrasyon ve Telemetri modüllerinde bu tarz fonksiyonlardan yararlanarak robotun verilerini alacağız
       public ArrayList<Double> Get_Motor_Power_List()
       {
@@ -181,22 +180,22 @@ public  class MotorControllerModule {
            //Burada bu joysticklerdeki axis'lerin itilme miktarını çektik
            if(joystick != null)
            {
-             if(robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
+             if(robot_Status != RobotStatus.TURNING )
              {
                  // Mevcut motorun güçlerini al
                double currentLeftInput = Motor_Power_List.get(0);
                double currentRightInput = Motor_Power_List.get(1);
                // Joystick inputlarını al veya varsayılan olarak 0 kabul et
-               double Speed_Input = joystick.getRawAxis(1);
-               double Rotate_Input = joystick.getRawAxis(0);
+               double Speed_Input = Math.pow(joystick.getRawAxis(1),3);
+               double Rotate_Input = Math.pow(joystick.getRawAxis(0),3);
                //Eşik değer kontrolü
-               if(Math.abs(Speed_Input) < 0.08)Speed_Input = 0;
-               if(Math.abs(Rotate_Input) < 0.08)Rotate_Input = 0;
+               if(Math.abs(Speed_Input) < 0.01)Speed_Input = 0;
+               if(Math.abs(Rotate_Input) < 0.01)Rotate_Input = 0;
               //  // Ramp algoritmasına göre Stabiliteyi sağlayacak bir ayarlama işlemi
                Double Absolute_Left_Motor_Power = rampMotorInput(currentLeftInput,Speed_Input,0.1f);
                Double Absolute_Right_Motor_Power = rampMotorInput(currentRightInput,Rotate_Input,0.1f);
                 Motor_Power_List.set(0, Absolute_Left_Motor_Power);
-                Motor_Power_List.set(1,Absolute_Right_Motor_Power );
+                Motor_Power_List.set(1, Absolute_Right_Motor_Power );
              }
            }
            else
@@ -228,32 +227,10 @@ public  class MotorControllerModule {
           //* */
           //Robotumuzu tank Drive bir şekilde geliştireceğimiz için bu tanımladığımız Right ve Left Leader'laarın motorlarına verilen bir güç olmalı 
          //Bu gücü de Input Processing Class'i içerisinde tanımlanmış joystick'lerin yön tuşlarındaki kolun ne kadar itildiğine bağlı olarak alacağı değere bağlı olacak. Artı olarak parametrelere değerini Input Processing'deki Joystickler Verecek 
-
-          if(Motor_Power_Control == "Stability")
-          {
-            if(robot_Status != RobotStatus.TURNING)
-            {
-             // Motor_Stability(0.2d);
-            }
-          }
-          else if(Motor_Power_Control == "Constant")
-          {
-            if(robot_Status != RobotStatus.TURNING)
-            {
-             // PID sistemli motor güç kontrolünü çağırın
-              Double[] Current_Speed = Sensor_Integration.Get_Motors_Speed();
-             //BURADAKİ DEĞERLER DENEME YANILMA MAKSADIYLA GİRİLMİŞTİR DEĞİŞTİRİLEBİLİR
-             // PID_parametres(0.1,0.01,0.001);
-             //Buradaki SetPoint değeri İstenilen hızı temsil etmektedir 
-             //bizim PID algoritmasını yazarken ki amacımız aslında hem sağ hem de sol motorun hızını istenilen değere yani Setpoint değerine sabitlemek (Set point değeri değişken olabilir ancak bu bir hızı değeridir, motorların istenilen hız değeri)
-             Motor_Velocity_Equation((Motor_Power_List.get(0)), Current_Speed);
-             }
-          }
           //System.out.println(Motor_Power_Control + " " + robot_Status);
-            Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
+          Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
          //  System.out.println(Left_Leader.get() + " Left motor " + Right_Leader.get() + " right ");
-         double Deneme = VisionProcessing.Scan_Apriltag();
-         System.out.println(Deneme + " ID");
+         
          }
        /*|END Title : TELOP MOTOR KISMI  |*/
 
@@ -267,7 +244,8 @@ public  class MotorControllerModule {
          timer.reset();
          timer.restart();
        }
-     
+       //Otonom kodda robotun orta sahaya kadar yaklaşmada komutu verecek tag boolean'İ
+       private Boolean Tag_Control;
        public void Autonomous_Drive_Periodic() {
         /*OTONOMDA YAPILACAK İŞLEMLER */
          // ilgili noktaya dönme, döndükten sonra hopörlöre atış işlemi ardından tekrar eski başlangıç açısına dönme
@@ -281,9 +259,7 @@ public  class MotorControllerModule {
           //  CurrentAngle %= 360;
           //  if(CurrentAngle < 0) CurrentAngle += 360;
           //  CurrentAngle =  CurrentAngle /180;
-          
-           
-           if(timer.get() < 20)
+           if(timer.get() < 2)
            {
             //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
             //Notanın robot içinde olup olmaması Touch sensörü ile kontrol ediliyor
@@ -300,195 +276,72 @@ public  class MotorControllerModule {
             
            //  Autonomous_Set_Robot();
            }
-           else if (timer.get() >= 20 && timer.get() <= 40) {
+           else if (timer.get() >= 2 && timer.get() <= 4.5) {
                if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
                if(reached_Angle == false)
                {
                //Robotun varolan açısına geri dönmesi 
                if( Initial_Angle_Difference==999d)
                 {
-                  System.out.println("Deneme");
-                  TargetAngle =CurrentAngle +  1;
-                  if(TargetAngle >2 ) TargetAngle -= 2;
-                   if(TargetAngle < 0 ) TargetAngle += 2;
+                  TargetAngle =Math.toDegrees(CurrentAngle) + 180;
+                  if(TargetAngle >360 ) TargetAngle -= 360;
+                  if(TargetAngle < 0 ) TargetAngle += 360;
+                  TargetAngle = Math.toRadians(TargetAngle);
                   Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
                 }
-                System.out.println((TargetAngle - CurrentAngle)* 180 + " Difference");
                if(!Stop_Rotate)
                {
-                if(Math.abs(CurrentAngle - TargetAngle)*180>  1d )
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))>  1d )
                 {
                     double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
                     Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
                 }
                }
-                if(Math.abs(CurrentAngle - TargetAngle)*180 < 1d )
+                if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 1d )
                 {
                       Initial_Angle_Difference = 999d;
                       Stop_Rotating();
                       reached_Angle = true;
                       //*deploy */
-                    //  Motor_Power_List.set(0, 0d);
+                      Motor_Power_List.set(0, 0d);
                       /* */
                       Motor_Power_List.set(1, 0d);
                 }
                }
            }
-           else if(timer.get() >=40&& timer.get() <40.4)
+           else if(timer.get() >=4.5 && timer.get() < 15)
            {
-             //Robotun taksi yapma işlemi
-             Motor_Power_List.set(0,0.3);
-             /*Deployda silinecek */
-             Motor_Power_List.set(1,0.3);
-             //Bir sonraki işlem için ön hazırlık
              Stop_Rotate = false;
-           } 
-           else if(timer.get() >= 40.4 && timer.get() <= 150)
-           {
-               //Robot dönüp notayı attıktan sonra eski açısına dönme işlemi
-                if(!Stop_Rotate)
-                {
-                     Double Apriltag_ID = VisionProcessing.Scan_Apriltag();
-                     Boolean ID_perceived = Apriltag_ID == 2 || Apriltag_ID == 5 ? true : false;
-                     if(!ID_perceived ) Rotate_Robot(0.3 , (TargetAngle - CurrentAngle) > 0 ? true : false );
-                     else
-                     {
-                        if( Initial_Angle_Difference==999d)
-                      {
-                        TargetAngle = CurrentAngle;
-                        Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
-                      }
-                      System.out.println(TargetAngle  + " Target " + CurrentAngle + " Current");
-                     if(!Stop_Rotate)
-                     {
-                      if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle))> 0.3d )
-                      {
-                          double Turning_Speed =  (Math.abs(TargetAngle - CurrentAngle ) / Initial_Angle_Difference ) ;
-                          Rotate_Robot(Turning_Speed , (TargetAngle - CurrentAngle) > 0 ? true : false );
-                      }
-                     }
-                      if(Math.toDegrees(Math.abs(CurrentAngle - TargetAngle)) < 0.3d )
-                      {
-                            Initial_Angle_Difference = 999d;
-                            Stop_Rotating();
-                            reached_Angle = true;
-                            //*deploy */
-                            Motor_Power_List.set(0, 0d);
-                            /* */
-                            Motor_Power_List.set(1, 0d);
-                      }
-                  }
-                 }
-                else
-                {
-                  //Eğer ki stop rotation işlemi true olmuşsa demekki Limelight tarafından ilgili APriltag algılanmış ve kaynak noktasu bulunmuştur 
-                  //Buradaki işlemle de robotun April tag ile arasındaki mesafe çekilip bu mesafeye bir tık daha yakın bir noktada ve robotun baktığı doğrultudan bir setpoint oluşturup oraya gitme
-                  Double Distance = VisionProcessing.Apriltag_Get_Distance(0d, 0d, 0d, 0.2d);
-                 Double Current_X_Position = Math.cos(CurrentAngle) * (Distance - 0.5d);
-                 Double Current_Y_Position = Math.sin(CurrentAngle) * (Distance - 0.5d);
-                  if(Is_Point_Setted == false)
-                  {
-                   Setpoint = new Pose2d(Current_X_Position,Current_Y_Position,new Rotation2d(Math.toRadians(TargetAngle)));
-                   Is_Point_Setted = true;
-                   }
-                  TargetAngle = CalculateAngle_Pose2D(Current_Point,Setpoint);
-                   if( Initial_Angle_Difference==999d)
-                   {
-                     Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
-                   }
-                   double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )*3  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) *2;
-                   if(Math.abs(CurrentAngle - TargetAngle ) > 75) Turning_Speed = 1;
-                  if(Math.abs(CurrentAngle - TargetAngle) > 3d && !reached_Setpoint  && !manoeuvre && !reached_Angle)
-                  {
-                    //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
-                   Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
-                  }
-                  else
-                  {
-                    //koşul sağlandığında robotu döndürmeyi bırak ve robotun motorlarına bu sefer istenilen Setpoint noktasına gitmesi için güç ver  
-                    // Stop_Rotating();
-                    if(reached_Angle == false) reached_Angle = true;
-                  }
-                  if(reached_Angle)
-                  {
-                   Autonomous_Set_Robot(); //Robotun motorlarına  güç ver 
-                   //Robotun hem dönmek için hem de hedeflenen noktaya gitmek için vakit kaybetmemesi için biz robota aynı anda iki tane işlem yaptırıyoruz bu sayede vakit kazanıyoruz.
-                   //buradaki işlemde Autonomous_Set_Robot robotun motorlarına ileri gidecek şekilde (Lineer Interpolasyon ile) güç veriyor alttaki sorgulama ise robotun hedef noktası ile  arasında bir açı farkı varsa robotun oraya giderken o noktaya tam gidebilmesi için robotu döndürür.
-                   // robot setpoint noktasına giderken iki işlem gerçekleşeceği için optimizasyonda sıkıntı çıkabilir duruma göre kod optimize edilecektir
-                   if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !manoeuvre)
-                   {
-                    Motor_Power_List.set(1,  (CurrentAngle - TargetAngle) > 0 ? Motor_Power_List.get(1) - Turning_Speed : Motor_Power_List.get(1) + Turning_Speed);
-                   }
-                  }
-                }
-           }
-           else {
-               // Rastgele setpoint belirle // Şu anlık görüntü işleme algoritması yazılmadığından robotun gitmesi için rastgele bir set point belirliyoruz ve robotun motor hızını PID ile kontrol ediyoruz
-               
-                /*ROBOTUN SENSÖRLERİ ENTEGRE EDİLİNCE PROJEYE VERİLER SANAL POSE2D SINIFI ÜZERİNDEN DEĞİL DİREKT ROBOTUN SENSÖRÜNDEN ÇEKİLECEK */
-                /*SENSÖR VERİ */
-                // Current_Point = Sensor_Integration.Robot_Current_Position();
-                Double Current_X_Position = Current_Point.getX();
-                Double Current_Y_Position = Current_Point.getY();
-               // sürekli yeni bir Setpoint noktası oluşturmaması için bir kereliğine mahsus robotun en az 5 en fazla 10 metre ilerisinde vye gerisinde olacak şekilde hem ,X hem Y ekseninde, bir random setpoint oluşturuyoruz
-               if(Is_Point_Setted == false)
-               {
-                  Setpoint = SetRandomPoint_Pose2D(Current_X_Position, Current_Y_Position);
-                 Is_Point_Setted = true;
-               }
-               //robotun normal bulunduğu konum ile setpoint noktası arasındaki doğrunun eğimine göre (tana) target angle değerini hesaplıyoruz
-               TargetAngle = CalculateAngle_Pose2D(Current_Point,Setpoint);
-
-               //Robotun şu an Gyro benzeri bir sensörler entegre edilmediği yönünü çekmekte zorlanıyoruz sanal ortamda
-               //alternatif olarak da Pose2D'de kullanılan rotation2D kullanıyoruz
-               //Rotation2D ve Pose2D maç sırasında bizim hesaplayabileceğimiz veri yapılarına sahip değil biz bunları sadece simülasyon sırasında test etmek için kullanabiliriz
-               //gerçek robotta testleri koordinat sistemini sensörlerden Encoder sensörünü kullanarak 
-               //Yön olarak NavX-MXP sensörünü kullanarak
-               //random Setpoint noktası oluşturmak yerine de Limelight 3 ile görüntü işleme sistemi sayesinde en yakındaki AMP veya Hopörlörü bir setpoint noktası olarak atayacağız
-               //robotun eğer ki sahip olduğu bir Intake sistemi varsa yerdeki notayı setpoint olarak algılayacak
-               //Ardından da buradaki kendi konumu ile gideceği setpoint arasındaki mesafeyi ve buna bağlı olarak error mesafesini UltraSonic sensörle sağlayacak
-
-               CurrentAngle =Current_Point.getRotation().getDegrees();
-               //robotun o andaki mevcut açısı  -180 180 derece dışındaysa esas ölçüsü alınır
-               CurrentAngle %= 360;
-               if (CurrentAngle < 0) CurrentAngle += 360;
-               
-               //Başlangıçta sahip olduğu yön yani açı değeri ile setpoint ile Current point yani robotun konumu arasındaki açının farkı hesaplanır
-               if( Initial_Angle_Difference==999d)
-               {
-                 Initial_Angle_Difference  =  Math.abs(CurrentAngle - TargetAngle);
-               }
-               //Lineer interpolasyon sistemi ile robotun yönünü target angle'a yaklaştırmak maksadıyla bir dönme hızı veriliyor.
-               //Lineer İnterpolasyon : İKİ sayı arasındaki farkı yine farklı iki sayı arasındaki değere indirgemek. Mesela 40 - 0 arasındaki sayıları 1 ile 0'a indirmek gibi 40 ise sayı değeri 1,  0 ise  0 , 20 ise 0.5 gibi. 
-               // Not :  *5 katsayısı daha hızlı dönüp vakit kaybetmemesi için verilmiştir
-               double Turning_Speed = ( Initial_Angle_Difference < -90d || Initial_Angle_Difference > 90d ) ? (Math.abs(CurrentAngle - TargetAngle ) / Initial_Angle_Difference )*3  : (Math.abs(CurrentAngle - TargetAngle) / Initial_Angle_Difference ) *2;
-                if(Math.abs(CurrentAngle - TargetAngle ) > 75) Turning_Speed = 1;
-
-               //Turning Speed Değeri geldikte sonra robotun baktığı açı ile istenilen açı arasındaki fark 2dereceden fazl olduğu sürece döndürülsün 
-               //2 derece olmasının sebebi robotun tam açı değerini bulmak için fazla vakit kaybetmemesi ve bir an önce istenilen yola gitmesi
-              if(Math.abs(CurrentAngle - TargetAngle) > 3d && !reached_Setpoint  && !manoeuvre && !reached_Angle)
+             if(timer.get() >=4.5 && timer.get() <=7)
+             {
+                Tag_Control =  VisionProcessing.Scan_Apriltag() == 14 || VisionProcessing.Scan_Apriltag() == 13 ? true : false;
+                Motor_Power_List.set(0, 0.2d);
+             } 
+             else 
+             {
+              if(!Tag_Control) 
               {
-                //aradaki açı değeri neredeyse aynı olana kadar robotu en kısa yoldan döndür
-               Rotate_Robot(Turning_Speed , (CurrentAngle - TargetAngle) > 0 ? false : true );
+                 Motor_Power_List.set(0, 0d); 
+                 Motor_Power_List.set(1, 0d);
               }
               else
               {
-                //koşul sağlandığında robotu döndürmeyi bırak ve robotun motorlarına bu sefer istenilen Setpoint noktasına gitmesi için güç ver  
-                // Stop_Rotating();
-                if(reached_Angle == false) reached_Angle = true;
-              }
-              if(reached_Angle)
-              {
-               Autonomous_Set_Robot(); //Robotun motorlarına  güç ver 
-               //Robotun hem dönmek için hem de hedeflenen noktaya gitmek için vakit kaybetmemesi için biz robota aynı anda iki tane işlem yaptırıyoruz bu sayede vakit kazanıyoruz.
-               //buradaki işlemde Autonomous_Set_Robot robotun motorlarına ileri gidecek şekilde (Lineer Interpolasyon ile) güç veriyor alttaki sorgulama ise robotun hedef noktası ile  arasında bir açı farkı varsa robotun oraya giderken o noktaya tam gidebilmesi için robotu döndürür.
-               // robot setpoint noktasına giderken iki işlem gerçekleşeceği için optimizasyonda sıkıntı çıkabilir duruma göre kod optimize edilecektir
-               if(Math.abs(CurrentAngle - TargetAngle) > 0.01d && !manoeuvre)
+                int Tag_ID =(int) VisionProcessing.Scan_Apriltag();
+                if(Initial_Distance_April == 999d) Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
+                Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
+               Double Limit_Distance = 290d;
+               if(Distance_April - 50 >Limit_Distance)
                {
-                Motor_Power_List.set(1,  (CurrentAngle - TargetAngle) > 0 ? Motor_Power_List.get(1) - Turning_Speed : Motor_Power_List.get(1) + Turning_Speed);
+                Double Power_Ratio = ((Distance_April) / Initial_Distance_April)/ 5;
+                Motor_Power_List.set(0, Power_Ratio); 
+               }
+               else
+               {
+                 Motor_Power_List.set(0, 0d); 
+                 Motor_Power_List.set(1, 0d);
                }
               }
-               Pose2dSendable.field2.setRobotPose(Setpoint);
+             } 
            }
            Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
        }
@@ -593,7 +446,7 @@ public  class MotorControllerModule {
         public void Rotate_Robot(double Turning_Speed,Boolean Positive_Rotation)
         {
              //Burada biz robotu döndürme işlemini yaptıkça robotun durumu TURNING'dir ve turning içerisinde robotun bir çok işlemi yapmasına izin verilmez /*ÇAKIŞMA OLMAMASI İÇİN */
-              Robot_Status_Situational(1);
+              Robot_Status_Situational();
               /*DEPLOYDA YORUM SATIRI */
             // Motor_Power_List.set(0, Positive_Rotation ? -Turning_Speed : Turning_Speed);
               /* */
@@ -614,7 +467,7 @@ public  class MotorControllerModule {
       Pose2d Obstacle_Point;
       //UltraSonic'den gelen mesafe değeri
       double Current_Distance = 0d;
-      double Initial_Distance = 999d;
+      // double Initial_Distance = 999d;
       //Robotun POSE2D'de bulunduğu nokta ile obstacle noktası arasındaki fark
       double Current_Difference_Between_Points = 0d;
       //Obstacle noktasının X Y değerlerinin robotun X Y değerlerine farkı
@@ -769,36 +622,6 @@ public  class MotorControllerModule {
         /***************************/
 
        /* | Region : MOTOR DURUM İZLEME  |*/
-
-       //Motorlara verilen güçlerin stabilitesi ve max motor gücü farkı
-       //Periodic metot // Hem Teleop Hem de Autonomous için kullanılabilir
-       void Motor_Stability(Double max_Difference)
-       {
-         double Current_Difference = Math.abs(Motor_Power_List.get(0) - Motor_Power_List.get(1));
-         robot_Status = RobotStatus.DYNAMIC;
-        // Current Difference Control
-        //İLK ALTERNATİF
-         if(Current_Difference > max_Difference)
-         {
-            double Extra_Difference = (Current_Difference -max_Difference ) / 2;
-            Boolean extensial = Motor_Power_List.get(0) > Motor_Power_List.get(1);
-            if(extensial)
-            {
-               Motor_Power_List.set(0,Motor_Power_List.get(0)-Extra_Difference) ;
-            }
-            else
-            {
-               Motor_Power_List.set(0,Motor_Power_List.get(0)+Extra_Difference) ;
-            }
-         }
-       }
-      //Periodic Metot // Hem Teleop Hem de Autonomous için kullanılabilir
-      void Motor_Velocity_Equation(Double Desired_Speed, Double[] Current_Speed)
-      {
-         //ROBOTUN MOTORLARINA SABİT GÜÇ UYGULANARAK HAREKET SAĞLANMASI İÇİN ROBOTA ÖZEL DURUM EKLENMİŞTİR
-         Motor_Power_List.set(0, Desired_Speed);
-          Robot_Status_Situational(2);
-      }
       public ArrayList<Double> PID_parametres(double k_Proportional, double k_Integral, double k_derivative)
       {
         PID_Coefficients.set(0, k_Proportional) ;
@@ -818,16 +641,12 @@ public  class MotorControllerModule {
              Motor_Power_List.set(1, 0d);
             robot_Status = RobotStatus.IDLE;
           }
-          else 
-          {
-              robot_Status = RobotStatus.DYNAMIC;
-          }
+          else  robot_Status = RobotStatus.DYNAMIC;
         }
       }
-      public void Robot_Status_Situational(int Situation)
+      public void Robot_Status_Situational()
       {
-        if(Situation ==1 ) robot_Status =  RobotStatus.TURNING;
-        else if(Situation ==2 ) robot_Status =  RobotStatus.CONSTANTPOWER;
+         robot_Status =  RobotStatus.TURNING;
         Situational = true;
       }
        /*|Endregion :  MOTOR DURUM İZLEME |*/
