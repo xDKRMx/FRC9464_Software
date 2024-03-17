@@ -197,6 +197,10 @@ public  class SensorIntegrationModule  {
     public boolean is_Robot_Rotating(){
       return ahrs.isRotating();
     }
+    public void Reset_Displacement(){
+      ahrs.resetDisplacement();
+    }
+  
     //Ultra Sonic Sensör
     void ultrasonic_Init(){
       ultrasonic = new AnalogInput(0);

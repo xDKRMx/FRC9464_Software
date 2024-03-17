@@ -2,6 +2,7 @@ package frc.robot.DriverSystem;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.ManipulationSystem.ClimberModule;
 import frc.robot.ManipulationSystem.ShooterModule;
 import frc.robot.ManipulationSystem.ShooterModule.AMPmotorStatus;
 import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
@@ -20,6 +21,7 @@ public  class InputProcessingModule {
      //Composition ve Encapsulation mantığı ile modüllerin Class içerisine çağırılıp örneklerinin alınması
      private MotorControllerModule Motor_Controller_Module;
      private ShooterModule Shooter_Module;
+     private ClimberModule climberModule;
      /***************************/ 
 
       // Constructor
@@ -119,6 +121,11 @@ public  class InputProcessingModule {
           else if(Active_POV==0) Shooter_Module.Shoot_Subsystem("","AMP");
           //CCRP
           else if(Active_POV==270) Shooter_Module.Contuinously_Computed_Released_Point();
+          
+          else if(Active_button == 5) climberModule.Climb("climb", "left");
+          else if(Active_button == 6) climberModule.Climb("climb", "right");
+          else if(Active_button == 10) climberModule.Climb("descend", "left");
+          else if(Active_button == 9) climberModule.Climb("descend", "right");
           else
           {
             if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");

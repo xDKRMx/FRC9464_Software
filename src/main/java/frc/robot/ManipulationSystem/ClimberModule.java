@@ -18,8 +18,7 @@ public  class ClimberModule {
       //Ek modüllerin tanımlaması
       private MotorControllerModule Motor_Control_Module;
       //PID dengesi
-      private PIDController Height_Balance;
-      private PIDController Torque_Balance;
+
       //Zincire tırmanma öncesi başlangıç değerleri
       public Boolean Climbing_Started = false;
       Double[] Initial_Axis_Angles;
@@ -56,27 +55,22 @@ public  class ClimberModule {
          }
      }
 
-     public void Climbing()
-     {
-        if(Climbing_Started ) 
-        {
-          if( Math.abs(Current_Height)> 0.05)
-          {
-            Elevator_System();
-          }
-          else
-          {
-             /*ROBOTUN DEPLOY EDERKEN SPARK hatası vermemesi için spark max  ile alakalı olan kodlar yorum satırına alınd */
-            /****** */
-             //  Telescobic_Motor.setIdleMode(IdleMode.kBrake);
-            //   Telescobic_Motor.set(0);
-          }
-        }
-        else
-        {
-
-        }
-     }
+    public void Climb(String mode, String motor){
+      if(mode == "climb"){
+        if(motor == "left")
+        Telescobic_Motor_Left.set(0.5);
+        else if(motor == "right")
+        Telescobic_Motor_Right.set(0.5);
+      }
+      else if(mode =="descend"){
+        if(motor == "left")
+        Telescobic_Motor_Left.set(-0.5);
+        else if(motor == "right")
+        Telescobic_Motor_Right.set(-0.5);
+      }
+    }
+       
+     
      public void Elevator_System()
      {
         Current_Height = Double.valueOf(Motor_Control_Module.Sensor_Integration.get_Height());
@@ -84,5 +78,7 @@ public  class ClimberModule {
         Climber_Motor_Power = Math.max(-0.5, Math.min(0.5, Climber_Motor_Power));
        // Telescobic_Motor.set(Climber_Motor_Power);
      }
+
+     
      
 }
