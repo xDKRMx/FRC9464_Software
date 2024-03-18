@@ -222,7 +222,7 @@ public  class SensorIntegrationModule  {
     {
       //Notanın algılanması için dijital sensöre bağladığımız touch sensöründen veri çekiyoruz
       boolean Touch_Control =  touchSensor.get();
-      return Touch_Control;
+      return !Touch_Control;
     }
     /*| END Region : SENSORLERLE TEMEL İŞLEMLERİN VERİLERİNİ ÇEKME|*/
    /***************************/

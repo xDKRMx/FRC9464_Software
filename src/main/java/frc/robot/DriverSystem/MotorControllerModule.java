@@ -66,11 +66,10 @@ public  class MotorControllerModule {
      //ODOMETRİ HESABI İLE
      Pose2d Current_Point;
      Pose2d Setpoint;
-     /*GEÇİCİ SÜRELİĞİNE OLUŞTURULMUŞ MANEVRA SİSTEMİ TESTİ */
-     ArrayList<Pose2d> OBSTACLES = new ArrayList<>(Collections.nCopies(5, null));
-     //Senör verilerine göre
-    //  Double[]  Current_Point_Sensor = new Double[2];
-    //  Double[] Setpoint_Sensor = new Double[2];
+     //Otonom Limelight
+     public Double Y_April = 0d;
+     public Double Initial_Y_April = 0d;
+     public Double Limit_TY = -6.10d;
      //Robotun manevra işlemine girmesi için limit değişkenler
      private double Limit_Distance = 2d;
      private boolean manoeuvre = false;
@@ -263,40 +262,38 @@ public  class MotorControllerModule {
                 }
                }
            }
-           else if(timer.get() >=4.5 && timer.get() < 5.5)
+           else if(timer.get() >=4.5 && timer.get() < 15)
            {
              Motor_Power_List.set(0, -0.2d); 
-            //  Stop_Rotate = false;
-            //  if(timer.get() >=4.5 && timer.get() <=7)
-            //  {
-            //     Tag_Control =  VisionProcessing.Scan_Apriltag() == 14 || VisionProcessing.Scan_Apriltag() == 13 ? true : false;
-            //     Motor_Power_List.set(0, 0.2d);
-            //  } 
-            //  else 
-            //  {
-            //   if(!Tag_Control) 
-            //   {
-            //      Motor_Power_List.set(0, 0d); 
-            //      Motor_Power_List.set(1, 0d);
-            //   }
-            //   else
-            //   {
-            //     int Tag_ID =(int) VisionProcessing.Scan_Apriltag();
-            //     if(Initial_Distance_April == 999d) Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
-            //     Distance_April = VisionProcessing.apriltag_Get_Distance_Y(Tag_ID);
-            //    Double Limit_Distance = 290d;
-            //    if(Distance_April - 50 >Limit_Distance)
-            //    {
-            //     Double Power_Ratio = ((Distance_April) / Initial_Distance_April)/ 5;
-            //     Motor_Power_List.set(0, Power_Ratio); 
-            //    }
-            //    else
-            //    {
-            //      Motor_Power_List.set(0, 0d); 
-            //      Motor_Power_List.set(1, 0d);
-            //    }
-            //   }
-            //  } 
+             Stop_Rotate = false;
+             if(timer.get() >=4.5 && timer.get() <=7)
+             {
+                Tag_Control =  VisionProcessing.Scan_Apriltag() == 14 || VisionProcessing.Scan_Apriltag() == 13 ? true : false;
+                Motor_Power_List.set(0, 0.2d);
+             } 
+             else 
+             {
+              if(!Tag_Control) 
+              {
+                 Motor_Power_List.set(0, 0d); 
+                 Motor_Power_List.set(1, 0d);
+              }
+              else
+              {
+                if(Initial_Y_April == 999d) Y_April = VisionProcessing.getTargetOffsetY();
+                Y_April = VisionProcessing.getTargetOffsetY();
+               if(Y_April < Limit_TY)
+               {
+                Double Power_Ratio = ((Y_April) / Initial_Y_April)/ 5;
+                Motor_Power_List.set(0, Power_Ratio); 
+               }
+               else
+               {
+                 Motor_Power_List.set(0, 0d); 
+                 Motor_Power_List.set(1, 0d);
+               }
+              }
+             } 
            }
            Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
        }
@@ -464,35 +461,8 @@ public  class MotorControllerModule {
              Obstacle_Point = null;
            }
          }
-         else
-         {
-            for (Pose2d pose2d : OBSTACLES) {
-            //Buradaki Foreach döngüsü Sanal ortamda oluşturulmuş olan obstacle noktalarının sıra sıra obstacle noktası olması sağlanır
-            Obstacle_Point = pose2d;
-            //manevra sistemi çalışmıyorsa gösterge olarak green ghost robot modelini obstacle noktasında göster
-           System.out.println(pose2d +  "Obstacle");
-          }
-           
-         }
-         
          /****************** */
     }
-    //Bu kod bizim manevra işlemi sırasında daha kesin ve sağlam sonuçlar vermemiz için robotun çarpabileceği noktayı POSE2D kullanarak analitik düzlem X Y cinsinden hesaplamaktadır
-    private Pose2d Set_ObstaclePoint(double Increment)
-    {
-      //Increment parametresi Ultrasonic'den çekilen ve robotun hareket doğrultusundaki çarpacağı objeye olan uzaklığı
-      //bu uzaklığın obstacle noktasının koordinatları bulunması için robotun bulunduğu noktaya eklenmesi lazım
-      //robotun önce rotasyonu bulunması lazım bu sayede eklenecek değerin ne kadarı X ne kadarı Y ekseninde olduğu bulunabilir
-      Double Robot_Angle = Math.toRadians(Sensor_Integration.Get_Rotation_Angle());
-      // Engelin X ve Y koordinatları için değişimi hesapla
-      //arttırma noktası bileşenlerine ayrıldıktan sonra trigonometrik değerlere göre Obstacle noktasının tam değerleri temsil etmesi için Trigonometri kullanılıyor
-      double deltaX = Current_Point.getX() + Increment * Math.cos(Robot_Angle);
-      double deltaY = Current_Point.getY() +Increment * Math.sin(Robot_Angle);
-      Pose2d Obstacle = new Pose2d(deltaX, deltaY, Current_Point.getRotation());
-      //Değerler yerine yazıldıktan sonra Pose2D nesnesine aktarılarak metot bu nesneyi döndürüyor
-      return Obstacle;
-    }
-
     /*|END Title : ROBOT MANEVRA SİSTEMİ|*/  
 
     /*|Endregion : CAN MOTOR KONTROL  |*/
