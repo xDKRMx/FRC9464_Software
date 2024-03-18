@@ -9,14 +9,14 @@ public  class ClimberModule {
      //Bu yüzden bu kodların öncesinde Intake ve Shooter Modülleri halledilecek eğer kki bir bakit boşluğu var o zaman asenkron bir şekilde geliştirilebilir
      //Bu Class bize bir nevi robotun tırmanma işlemlerini içerisinde barındıraağı ve bu sayede zincire tutunup dengesini kaybetmemesi için hassas işlemler içeren bir class olacak
      //Bu class'deki fonksiyonların ve bir çok değişkeninin public olarak tanımlanması veya OOP(Object oriented) mantığı ile encapsulation olarak tanımlanmış olması kodun ilerleyişi açısından daha iyi olur.
-     /*****************/
+    //  /*****************/
       //Teleskopik kolu yönetecek motor ve solenoid
-      private CANSparkMax Telescobic_Motor_Left = new CANSparkMax(8,MotorType.kBrushless);
-      private CANSparkMax Telescobic_Motor_Right = new CANSparkMax(9,MotorType.kBrushless);
+      // private CANSparkMax Telescobic_Motor_Left = new CANSparkMax(8,MotorType.kBrushless);
+      // private CANSparkMax Telescobic_Motor_Right = new CANSparkMax(9,MotorType.kBrushless);
     public ClimberModule()
      {
-         Telescobic_Motor_Left.setIdleMode(IdleMode.kBrake);
-          Telescobic_Motor_Right.setIdleMode(IdleMode.kBrake);
+        //  Telescobic_Motor_Left.setIdleMode(IdleMode.kBrake);
+        //   Telescobic_Motor_Right.setIdleMode(IdleMode.kBrake);
      }
     public void Climb(String mode, String motor){
       // if(mode == "climb"){
