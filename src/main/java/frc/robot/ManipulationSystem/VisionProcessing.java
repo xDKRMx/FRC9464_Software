@@ -86,7 +86,7 @@ public  class VisionProcessing
    Apriltag_List[9] =  144; 
    Apriltag_List[10] =  126; 
    Apriltag_List[11] =  126; 
-   Apriltag_List[12] =  126; 
+   Apriltag_List[12] =  140; 
    Apriltag_List[13] =  126;
    Apriltag_List[14] =  126; 
    Apriltag_List[15] =  126; 
@@ -193,7 +193,7 @@ public  class VisionProcessing
     if(Apriltag_ID != 0)
     {
    double CameraAngle = 0d;
-    double Camera_Height = 43d;
+    double Camera_Height = 45d;
     double Apriltag_height = Apriltag_List[Apriltag_ID -1];
     if(Tag_Detected)
     {
