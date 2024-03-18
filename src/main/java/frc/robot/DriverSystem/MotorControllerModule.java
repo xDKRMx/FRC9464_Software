@@ -6,13 +6,11 @@ import frc.robot.ManipulationSystem.ShooterModule.ShooterMotorStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Random;
 
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -34,7 +32,6 @@ public  class MotorControllerModule {
     //Ek modüllerin tanımlaması
     public SensorIntegrationModule Sensor_Integration = new  SensorIntegrationModule(this);
     public ShooterModule Shooter_Module = new  ShooterModule(this);
-    public ClimberModule Climber_Module = new  ClimberModule(this);
     public VisionProcessing VisionProcessing = new  VisionProcessing();
    // KeyboardAnalog Key_Analog = new KeyboardAnalog(this);
     //Robotun durumu
@@ -52,30 +49,20 @@ public  class MotorControllerModule {
      //iki elemanlı bir ARRAYLIST ilk elemen LEFT MOTOR POWER ikinci eleman RIGHT MOTOR POWER
      /* POWER : MOTORA INPUT İLE VERİLEN GÜÇ (MİN -1, MAX +1)  */
      private ArrayList<Double> Motor_Power_List;
-     //Motorun varsayılarak yapılmış max hızı
-     public Double Motor_Max_Speed = 10d;
-     //Motorun varsayılarak yapılmış min hızı
-     public Double Motor_Min_Speed = -10d;
      //Motorların Motor Stabilitesini sağlama Kontrolü
      /*
       Bu değişkenin işlevi şu eğer ki biz motorların sabit hızla gitmesini istiyorsak bunun için PID sistemli mMotor_Velocity_Equation() fonksiyonu kullanılacak. 
       Eğer ki biz motorların hızını sabit olmasını istemiyorsak bunun yerine motorların arasındaki  hız farkına göre bir yumuşatma işlemi uygulayacaksak Motor_Stability() sisteminde işlem yapılacak Motor_Stability() fonksiyonu kullanılacak.
        Biz bu fonksiyonları uygulamazsak bunun halinde motorlar arası  hız farkı çok olabilir bu da robotu çok hızlı döndürerek bozabilir
       */
-     public String Motor_Power_Control;
-     private ArrayList<Double> PID_Coefficients;
       public boolean Stop_Rotate;
      //OTONOM KISMI İÇİN TANIMLANMACAK DEĞİŞKENLER
      private Timer timer = new Timer();
-     private boolean Is_Point_Setted = false;
-     private boolean reached_Setpoint = false;
      private boolean reached_Angle = false;
      private double Initial_Angle_Difference = 999d;
      double TargetAngle;
      double CurrentAngle;
      //Otonom kısım Limelight'ları
-     private Double Initial_Distance_April = 999d;
-     private Double Distance_April = 0d;
      //ODOMETRİ HESABI İLE
      Pose2d Current_Point;
      Pose2d Setpoint;
@@ -86,7 +73,6 @@ public  class MotorControllerModule {
     //  Double[] Setpoint_Sensor = new Double[2];
      //Robotun manevra işlemine girmesi için limit değişkenler
      private double Limit_Distance = 2d;
-     private double limit_Velocity = 5d;
      private boolean manoeuvre = false;
      /**********************************/
      // Constructor
@@ -102,10 +88,7 @@ public  class MotorControllerModule {
         Right_Leader.setInverted(false);
         //Robotun durumunu varsayılan olarak IDLE ayarlama
         robot_Status = RobotStatus.IDLE;
-        //Başta Joystick üzerinden herhangi ilgili butona basılmadığı (PID sistemini kullanacak) için motorların hız kontrolü için 
-        Motor_Power_Control = "Stability";
         //PID controlleri için başlangıç
-        PID_Coefficients = new ArrayList<>(Collections.nCopies(3, 0.0));
         //zamanlayıcıyı sıfırla
         timer.reset();
         timer.start();
@@ -198,20 +181,6 @@ public  class MotorControllerModule {
                 Motor_Power_List.set(1, Absolute_Right_Motor_Power );
              }
            }
-           else
-           {
-            /*ROBOTUN DEPLOY EDERKEN DX11 hatası vermemesi için keyboard ile alakalı olan kodlar yorum satırına alınd */
-            /****** */
-             //Eğer ki joystickler tanımlı depilse joystick'in görevlerini geçici süreliğine Klavyeden yazılan tuşlar üstlenecek
-            //  Key_Analog.periodic_KeyListener();
-            //  if(robot_Status != RobotStatus.TURNING && robot_Status != RobotStatus.CONSTANTPOWER)
-            //  {
-            //   Motor_Power_List.set(0,  Key_Analog.Motor_Speed_Key_Analog("Left"));
-            //   Motor_Power_List.set(1,  Key_Analog.Motor_Speed_Key_Analog("Right"));
-            //  }
-             
-           }
-
           //ARCADE DRIVE ALGORİTMASI
           //* */
           //Arcade Drive sürüş tekniği şu şekildedir. Sürücünün robotu yönetmek için elinde tek bir joystick vardır bu Josytick'deki ilk arduinosu robotun hareketini kontrol edebilmemizi sağlar joystick'deki diğer arduinosu ise robotun ileri ve geri hareketini sağlar
@@ -253,12 +222,8 @@ public  class MotorControllerModule {
            //Kaynak noktasının apriltag'i algılandıktan sonra limelight dökümentasyonundaki mesafe ölçümü ile uzaklık bulunduktan sonra o uzaklğının birazcık daha az değeri ile robota gitmesi için bir setpoint noktası belirleyip oraya yöneltme
            //Robotun her frame otonomdaki işlemleri matematiksel olarak değerlendirip onu koordinat sistemine göre değerlendireceğiz
             //Robotun varolan açısını bulma
-            /* CurrentAngle =Sensor_Integration.Get_Rotation_Angle(); */
-            Current_Point = TelemetryModule.Pose_Sendable.GetPose(); 
+          /* CurrentAngle =Sensor_Integration.Get_Rotation_Angle(); */
             CurrentAngle =Sensor_Integration.Get_Rotation_Angle();
-          //  CurrentAngle %= 360;
-          //  if(CurrentAngle < 0) CurrentAngle += 360;
-          //  CurrentAngle =  CurrentAngle /180;
            if(timer.get() < 2)
            {
             //İlk 2 saniye boyunca robot kendini notayı atacak şekilde ayarladıktan sonra robotun içindeki notayı hopörlöre atma işlemi
@@ -266,15 +231,7 @@ public  class MotorControllerModule {
              boolean Note_In_Robot = Sensor_Integration.Note_Touch_Control();
              if(Note_In_Robot) Shooter_Module.Shoot_Subsystem("Speaker","Shooter");
              else Shooter_Module.SlowDown_Motor_Power("Shooter");
-            //   if(Is_Point_Setted == false)
-            //   {
-            //        Setpoint = new Pose2d(Current_Point.getX() +1,Current_Point.getX() ,new Rotation2d(Math.toRadians(CurrentAngle)));
-                   
-            //        Is_Point_Setted = true;
-            //  }
-            //  OBSTACLES.set(0, Setpoint);
-            
-           //  Autonomous_Set_Robot();
+          
            }
            else if (timer.get() >= 2 && timer.get() <= 4.5) {
                if(Shooter_Module.Shooter_Status == ShooterMotorStatus.Dynamic) Shooter_Module.SlowDown_Motor_Power("Shooter");
@@ -343,82 +300,6 @@ public  class MotorControllerModule {
            }
            Main_Robot_Drive.arcadeDrive( Motor_Power_List.get(0),Motor_Power_List.get(1),false); 
        }
-        private Pose2d SetRandomPoint_Pose2D(double X_position, double Y_Position)
-        {
-          //Random Setpoint noktaıs oluşturma algoritması 
-              Random Random = new Random();
-              boolean chooseNegativity = Random.nextBoolean();
-              double Set_Point_X_Position =chooseNegativity ? X_position + 5 + (10 - 5) * Random.nextDouble() : X_position - 5 - (10 - 5) * Random.nextDouble(); // 5 ile 10 arasında rastgele bir çift sayı ekler
-              chooseNegativity = Random.nextBoolean();
-              double Set_Point_Y_Position = chooseNegativity ? Y_Position + 5 + (10 - 5) * Random.nextDouble() : Y_Position - 5 - (10 - 5) * Random.nextDouble();
-              /**/
-              //Oluşturlan değerler sonucundaki nokta ile robotun varolan noktası arasındaki geometrik hesaplarla oluşturulmuş eğim yani açı değeri
-                double targetAngle = Math.toDegrees(Math.atan2(Set_Point_Y_Position - Y_Position,
-                Set_Point_X_Position - X_position));
-               /**/
-               // o açı değerini radyan cinsine çevirip Pose2D class'ine yollama
-               Rotation2d Default_Rotation = new Rotation2d(Math.toRadians(targetAngle));
-               Pose2d Setpoint = new Pose2d(Set_Point_X_Position , Set_Point_Y_Position, Default_Rotation);
-              for (int a = 0; a < 5 ; a++) {
-                Double ex = (5) * Random.nextDouble();
-                Pose2d pose = new Pose2d(Set_Point_X_Position -ex ,Set_Point_Y_Position -ex , Default_Rotation );
-                OBSTACLES.set(a, pose);
-              }
-             return Setpoint;
-        }
-
-        public double CalculateAngle_Pose2D(Pose2d CurrentPoint, Pose2d SetPoint )
-        { 
-          //burada iki nokta arasındaki açı farkını trigonometri ile hesaplıyoruz
-          // Setpoint'e göre hedef açıyı hesapla
-          double targetAngle = Math.toDegrees(Math.atan2(SetPoint.getY() - CurrentPoint.getY(),
-          SetPoint.getX() - CurrentPoint.getX()));
-          targetAngle %= 360;
-          if (targetAngle < 0) targetAngle += 360;
-          return targetAngle;
-        }
-       //Otonom Motor Drive Kodu
-       //Başlangıçdaki erro yani iki nokta arasındaki fark absürt bir değer girilerek bir kereye mahsus ilk fark hesaplanmak istenmiştir
-       private double Initial_Error = 999d; 
-       private void Autonomous_Set_Robot() {
-        //SetPoint ile CurrentPoint arasındaki mesafeyi yani error'ü hesaplamak (Dik üçgen yöntemi ile hesaplanmaktadır)
-        double x_distance = Setpoint.getX() - Current_Point.getX();
-        double y_distance = Setpoint.getY() - Current_Point.getY();
-        double error = Math.sqrt(x_distance * x_distance + y_distance * y_distance);
-       
-        if(Initial_Error == 999d) Initial_Error = error;
-        //Roobtun motorlarına verilecek gücün yine Lineer Interpolasyon ile eror mesafesine bağlı olarak verilmesi
-        double Power = (error / Initial_Error) / 5; 
-       // System.out.println( error + " ERROR ");
-        if (Math.abs(error) < 0.3d) { // Hedefe yaklaştığında ve eşik değer geçildiğinde artık direkt durma komutu yazılmış
-          // Manevra testi için yorum satırına alınmıştır error'ün koşulu normalde 0.1 altı
-            //  Motor_Power_List.set(0, 0d);
-            // Motor_Power_List.set(1,0d);
-            /************** */
-            //robotun motorlara güç vermeyi durdurması yerine yeni bir setpoint oluşturup oraya gitmesini sağlaması ve bu şekilde SANAL ORTAMDA sonsuz loop'a sokulması
-          //  Stop_Rotating();
-            // Is_Point_Setted = false;
-            // reached_Setpoint = false;
-            // reached_Angle = false;
-            // Initial_Angle_Difference = 999d;
-             Motor_Power_List.set(0, 0d);
-              Motor_Power_List.set(0, 0d);
-        } 
-        else {
-          //ROBOTUN HEDEFLENEN NOKTAYA YAKLAŞIRKEN ÖNÜNE ÇIKAN HERHANGİ BİR ENGEL ÇIKMASI HALİNDE MANEVRA KONTOLÜ YAPMASI
-          //Ultrasonic sensörü aracılığıyla yapılan bu kontrolde eğer ki robotun önüne limit mesafeden daha kısa mesafede bir obje çıkarsa ve o anda robotun hızı limit hızdan fazlaysa robot kendisini döndürerek bir nevi engelden manevra sistemi ile kaçınacak
-          //Eğer ki önüne herhangi bir obje çıkmazsa çıksa bile artık hızı yavaşlamışsa boş yere manevra yapmayacak
-          /*MANEVRA SİSTEMİ ŞU ANDA GERÇEK SENSÖRLERLE TEST YAPILAMADIĞI İÇİN SADECE YENİ BİR SETPOİNT NOKTASI OLUŞTURMAYA YARIYOR */
-           Robot_manoeuvre();
-          //Hedef ile arasındaki error mesafesi hala eşik değer üstündeyse robotun motorlarına power oranında güç ver 
-          if(!manoeuvre)
-          {
-            //Eğer ki robotun manevra yapması gerekecek şekilde önünde bir obje yoksa lineer interpolasyon sistemi ile robotun hedef noktaya gitmesi sağlanıyor
-            Motor_Power_List.set(0, Power);
-          }
-           
-        }
-       }
      /*| END Title : OTONOM MOTOR KISMI  |*/  
        //Ramping algoritması ile Klavye analogundaki ani hızlanmaları engellediğimiz gibi Joystick'de ani hızlanmaları engelleyip daha pürüzsüz ve akıcı bir hızlanma sağlıyor 
        //Periodic metot
@@ -437,7 +318,6 @@ public  class MotorControllerModule {
          // Hızı -1 ile 1 arasında sınırla
          return Math.max(-1.0, Math.min(1.0, currentpower));
         }
-
         //Robotun istenilen yönde dönmesini Sağlayan Turning metodu bu metod ile biz motora istediğimiz gibi saat yönünde veya saat yönünün tersine bir rotasyon işlemi uygulayabileceğiz (ROBOT HEM STATİKKEN HEM DE HAREKET HALİNDEYKEN)
         //Periodic kontrol metodu 
         // Hem Teleop hem de Autonomous için kullanılabilir
@@ -455,7 +335,6 @@ public  class MotorControllerModule {
           Stop_Rotate = true;
           robot_Status = RobotStatus.DYNAMIC;
         }
-        
       /*|Title : ROBOT MANEVRA SİSTEMİ|*/  
       //Periodic metot
       //Otonom Kısmı için
@@ -620,14 +499,6 @@ public  class MotorControllerModule {
         /***************************/
 
        /* | Region : MOTOR DURUM İZLEME  |*/
-      public ArrayList<Double> PID_parametres(double k_Proportional, double k_Integral, double k_derivative)
-      {
-        PID_Coefficients.set(0, k_Proportional) ;
-        PID_Coefficients.set(1, k_Integral) ;
-        PID_Coefficients.set(2, k_derivative) ;
-        return PID_Coefficients;
-      }
-       // ROBOTUN  MOTORLARINDAKİ HIZINA GÖRE MOTORUN BULUNDUĞU HALİ KONTROL EDİYORUZ
        //Periodic metot
       public void Robot_Status_Mechanical()
       {

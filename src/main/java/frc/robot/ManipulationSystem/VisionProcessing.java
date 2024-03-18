@@ -193,7 +193,7 @@ public  class VisionProcessing
     if(Apriltag_ID != 0)
     {
    double CameraAngle = 0d;
-    double Camera_Height = 45d;
+    double Camera_Height = 43d;
     double Apriltag_height = Apriltag_List[Apriltag_ID -1];
     if(Tag_Detected)
     {

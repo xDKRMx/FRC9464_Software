@@ -90,8 +90,8 @@ public  class SensorIntegrationModule  {
     //Bu fonksiyon bizim robotumuzun motorlarında kullanacağımız Encoder'la bu sensör entegrasyonunda kullanacağımız Encoder'ı birbiriyle eşleştiriyor bu sayede Encoder sensörü ile şlem yaparken bir sıkıntı yaşamayacağız
     void Encoder_Match()
     {
-      //  leftEncoder = Left_Leader.getEncoder();
-      //  rightEncoder = Right_Leader.getEncoder();
+        leftEncoder = Left_Leader.getEncoder();
+        rightEncoder = Right_Leader.getEncoder();
     }
     /*|Title : Robotun X ve Y eksenlerindeki Yer değiştirmesini hesaplama|*/
     public Pose2d Robot_Init_Position()
